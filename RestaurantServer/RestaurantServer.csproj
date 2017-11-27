@@ -6,6 +6,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Data\dishes.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Data\dishes.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\RestaurantLib\RestaurantLib.csproj" />
   </ItemGroup>
 
