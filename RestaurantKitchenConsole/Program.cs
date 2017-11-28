@@ -1,4 +1,5 @@
 ﻿using System;
+using KitchenLib;
 
 namespace RestaurantKitchenConsole
 {
@@ -6,7 +7,7 @@ namespace RestaurantKitchenConsole
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var cli = new Cli();
         }
     }
 }
