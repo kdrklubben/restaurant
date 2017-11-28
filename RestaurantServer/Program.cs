@@ -6,7 +6,8 @@ namespace RestaurantServer
     {
         static void Main(string[] args)
         {
-            ServerSystem server = new ServerSystem();
+            ServerSystem server = ServerSystem.Instance;
+            server.Listen();
         }
     }
 }

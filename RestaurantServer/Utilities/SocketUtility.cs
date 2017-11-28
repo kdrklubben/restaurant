@@ -1,4 +1,5 @@
 ﻿using RestaurantServer.Models;
+using RestaurantServer.Systems;
 using System.Collections.Generic;
 using System.Net.Sockets;
 
@@ -6,13 +7,11 @@ namespace RestaurantServer.Utilities
 {
     internal static class SocketUtility
     {
-        internal readonly static List<Customer> CustomerConnections = new List<Customer>();
-
         internal static void CloseAllConnections()
         {
-            if (CustomerConnections.Count > 0)
+            if (ServerSystem.Instance.CustomerConnections.Count > 0)
             {
-                foreach (Customer customer in CustomerConnections)
+                foreach (Customer customer in ServerSystem.Instance.CustomerConnections)
                 {
                     try
                     {
@@ -24,8 +23,6 @@ namespace RestaurantServer.Utilities
                         customer.Socket.Close();
                     }
                 }
-
-                CustomerConnections.RemoveRange(0, CustomerConnections.Count - 1);
             }
         }
 
@@ -40,7 +37,6 @@ namespace RestaurantServer.Utilities
             {
                 socket.Close();
             }
-            CustomerConnections.RemoveAll(x => x.Socket == socket);
         }
     }
 }
