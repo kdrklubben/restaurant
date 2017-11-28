@@ -2,6 +2,7 @@
 using RestaurantServer.Systems;
 using System.Collections.Generic;
 using System.Net.Sockets;
+using System.Net;
 
 namespace RestaurantServer.Utilities
 {
@@ -37,6 +38,13 @@ namespace RestaurantServer.Utilities
             {
                 socket.Close();
             }
+        }
+
+        internal static Socket CreateServerSocket()
+        {
+            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            socket.Bind(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 8080));
+            return socket;
         }
     }
 }
