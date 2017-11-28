@@ -8,14 +8,14 @@ namespace RestaurantKitchenConsole
     public class Cli
     {
         private static bool _connectionSucceeded;
-        private readonly ClientSocket _client = new ClientSocket("127.0.0.1", "8081", out _connectionSucceeded);
+        private static ClientSocket _client;
         public Cli()
         {
             Menu();
             Commands();
         }
 
-        private void Commands()
+        private static void Commands()
         {
             while (true)
             {
@@ -23,15 +23,13 @@ namespace RestaurantKitchenConsole
                 CmdParse(Console.ReadLine().ToLower());
             }
         }
-        private void CmdParse(string cmd)
+        private static void CmdParse(string cmd)
         {
             switch (cmd)
             {
-                case "1":
-                    Connect();
+                case "1": Connect();
                     break;
-                case "help":
-                    Menu();
+                case "help": Menu();
                     break;
             }
         }
@@ -49,6 +47,7 @@ namespace RestaurantKitchenConsole
         private static void Connect()
         {
             Console.WriteLine("Kitchen application connecting to server...");
+            //_client = new ClientSocket("127.0.0.1", "8081", out _connectionSucceeded);
             Console.WriteLine(_connectionSucceeded
                 ? "Application is now connected to server."
                 : "Something went wrong try again later.");
