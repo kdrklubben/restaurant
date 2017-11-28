@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2009
+VisualStudioVersion = 15.0.26730.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{FF5C74C1-012D-454A-8B6A-1659FDA86F25}"
 EndProject
@@ -11,7 +11,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Kitchen", "Kitchen", "{FE5B
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Customer", "Customer", "{483020AC-296B-45C0-833A-F993A8EEFC22}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestaurantLib", "RestaurantLib\RestaurantLib.csproj", "{159F0E79-B786-4496-B3C1-6FE3D8F0E75B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RestaurantLib", "RestaurantLib\RestaurantLib.csproj", "{159F0E79-B786-4496-B3C1-6FE3D8F0E75B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestaurantKitchenConsole", "RestaurantKitchenConsole\RestaurantKitchenConsole.csproj", "{6418D859-CCE4-45F9-BC60-C6F6CF4CDDDA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KitchenLib", "KitchenLib\KitchenLib.csproj", "{E4556888-26D4-4EFD-B090-BA8387EF9C3A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,12 +27,22 @@ Global
 		{159F0E79-B786-4496-B3C1-6FE3D8F0E75B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{159F0E79-B786-4496-B3C1-6FE3D8F0E75B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{159F0E79-B786-4496-B3C1-6FE3D8F0E75B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6418D859-CCE4-45F9-BC60-C6F6CF4CDDDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6418D859-CCE4-45F9-BC60-C6F6CF4CDDDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6418D859-CCE4-45F9-BC60-C6F6CF4CDDDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6418D859-CCE4-45F9-BC60-C6F6CF4CDDDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4556888-26D4-4EFD-B090-BA8387EF9C3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4556888-26D4-4EFD-B090-BA8387EF9C3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4556888-26D4-4EFD-B090-BA8387EF9C3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4556888-26D4-4EFD-B090-BA8387EF9C3A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{159F0E79-B786-4496-B3C1-6FE3D8F0E75B} = {FF5C74C1-012D-454A-8B6A-1659FDA86F25}
+		{6418D859-CCE4-45F9-BC60-C6F6CF4CDDDA} = {FE5BC7FC-EC5B-4140-BF1B-07DE959B652F}
+		{E4556888-26D4-4EFD-B090-BA8387EF9C3A} = {FE5BC7FC-EC5B-4140-BF1B-07DE959B652F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9182C991-62B2-4DB2-81D4-171CB0D22405}
