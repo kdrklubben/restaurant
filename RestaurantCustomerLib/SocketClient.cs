@@ -18,11 +18,11 @@ namespace RestaurantCustomerLib
     {
         TcpClient client; // Helper on Socket class, e.g. defaults to tcp protocol
         NetworkStream networkstream;
-
-        public SocketClient()
-        {
-            Connect();
-        }
+        private Task Listen { get; set; }
+        //public SocketClient()
+        //{
+        //    Connect();
+        //}
 
         IPEndPoint RemoteEndPoint()
         {
@@ -46,7 +46,7 @@ namespace RestaurantCustomerLib
             return endPoint;
         }
 
-        private void Connect()
+        public void Connect()
         {
             var endpoint = RemoteEndPoint();
             Console.WriteLine("Contacting server");
@@ -61,8 +61,8 @@ namespace RestaurantCustomerLib
 
                 Console.WriteLine(response);
 
-                Task task = new Task(() => NotificationListen());
-                task.Start();
+                Listen = new Task(() => NotificationListen());
+                Listen.Start();
 
                 SendOrder(Console.ReadLine());
             }
@@ -73,9 +73,15 @@ namespace RestaurantCustomerLib
             }
         }
 
+        public void Disconnect()
+        {
+            SendOrder("exit");
+            NotificationListen("exit");
+        }
+
         void SendOrder(string message)
         {
-            Console.WriteLine("Exit with 'exit'");
+            //Console.WriteLine("Exit with 'exit'");
             while (true)
             {                
                 if (message == "exit") break;
@@ -87,15 +93,17 @@ namespace RestaurantCustomerLib
             }
         }
 
-        void NotificationListen()
+        void NotificationListen(string order = "")
         {
-            Console.WriteLine("Recieved data from server");
+            //Console.WriteLine("Recieved data from server");
             while (true)
             {
+                if (order == "exit") break;
                 byte[] buffer = new byte[1024];
                 int recieve = networkstream.Read(buffer, 0, buffer.Length);
                 string message = Encoding.ASCII.GetString(buffer, 0, recieve);
-                Console.WriteLine($"\t\t<{message}>");
+                // If needed, de-serialize the string into an order, or a list of dish, whichever the server guys send
+                Console.WriteLine(message);
             }
         }
 
