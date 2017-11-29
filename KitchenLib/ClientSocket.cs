@@ -26,9 +26,9 @@ namespace KitchenLib
             {
                 _client.Connect(_endPoint);
                 _stream = _client.GetStream();
-                ClientSend("GETORDERS");
-                ClientRecieveIncomingOrders();
-                new Task(ClientRecieveIncomingOrders).Start();
+                new Task(Listen).Start();
+                ClientSend("LOGIN;" + JsonConvert.SerializeObject("kitchen"));
+                ClientSend("GETORDERS;{}");
                 return true;
             }
             catch (Exception)
@@ -49,28 +49,34 @@ namespace KitchenLib
             _stream.Flush();
         }
 
-        public void ClientRecieveIncomingOrders()
+        public void Listen()
         {
             while (true)
             {
                 var data = new byte[1024];
                 int recv = _stream.Read(data, 0, data.Length);
-                var order = Encoding.ASCII.GetString(data, 0, recv);
-                if (ValidateJson(order))
-                    KitchenDb.Orders.Add(JsonConvert.DeserializeObject<Order>(order));
-
+                var receivedData = Encoding.ASCII.GetString(data, 0, recv).Split(";");
+                ParseCommand(receivedData[0], receivedData[1]);
             }
         }
 
-        public void ClientRecieveOrdersOnce()
+        private void ParseCommand(string cmd, string json)
         {
-            var data = new byte[1024];
-            int recv = _stream.Read(data, 0, data.Length);
-            var orders = Encoding.ASCII.GetString(data, 0, recv);
-            if (ValidateJson(orders))
-                KitchenDb.Orders = JsonConvert.DeserializeObject<List<Order>>(orders);
-        }
+            if (!ValidateJson(json)) return;
 
+            switch (cmd)
+            {
+                case "GETORDERS": KitchenDb.Orders.AddRange(JsonConvert.DeserializeObject<List<Order>>(json));
+                    break;
+                case "PLACEORDER": KitchenDb.Orders.Add(JsonConvert.DeserializeObject<Order>(json));
+                    break;
+                case "AUTHCONFIRMED":
+                    break;
+                case "AUTHDENIED":
+                    break;
+            }
+        }
+        
         private bool ValidateJson(string json)
         {
             try

@@ -40,6 +40,7 @@ namespace RestaurantKitchenConsole
             if (_connectionSucceeded)
             {
                 Console.WriteLine("2. Show orders");
+                Console.WriteLine("3. Mark order done");
             }
             Console.WriteLine("help");
         }
