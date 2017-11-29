@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using RestaurantLib;
 
 namespace KitchenLib
 {
@@ -44,9 +45,8 @@ namespace KitchenLib
 
         public void ClientSend(string data)
         {
-            var bytesToSend = Encoding.ASCII.GetBytes(data.ToCharArray(), 0, data.Length);
+            var bytesToSend = Encoding.ASCII.GetBytes(data);
             _stream.Write(bytesToSend, 0, bytesToSend.Length);
-            _stream.Flush();
         }
 
         public void Listen()
