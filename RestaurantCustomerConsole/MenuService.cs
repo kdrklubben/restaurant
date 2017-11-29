@@ -2,13 +2,12 @@
 using RestaurantCustomerLib.Models;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace RestaurantCustomerConsole
 {
     internal class MenuService
     {
-        internal static SocketClient Client { get; private set; }
+        public SocketClient Client { get; private set; }
         internal static List<Dish> Menu { get; private set; }
         private void Initialize()
         {
@@ -46,25 +45,35 @@ namespace RestaurantCustomerConsole
             }
         }
 
-        void ClaimName()
+        internal void ClaimName()
         {
             string name;
             do
             {
                 Console.WriteLine("Type a unique name, so the kitchen can reply once your order is completed.\n(hint: your e-mail address is the most likely to be unique)");
                 name = Console.ReadLine();
-                // Ignoring Validate, but should probably guard against SQL injections
-            } while (!Client.IsUniqueName(name));
-            Console.WriteLine($"Welcome {name}");
+            } while (!IsValid(name));
+            Client.Login(name);
+        }
+
+        private bool IsValid(string name)
+        {
+            // Should probably guard against SQL injections
+            if (name == "kitchen") return false;
+
+            return true;
         }
 
         void PlaceOrder(string item)
         {
-            if (!int.TryParse(item, out int itemId))
+            int itemId = 0;
+            if (!int.TryParse(item, out itemId))
             {
                 // user inputted a dish name, locate its id
             }
             // send call to server
+            
+            Client.Order(itemId);
         }
     }
 }

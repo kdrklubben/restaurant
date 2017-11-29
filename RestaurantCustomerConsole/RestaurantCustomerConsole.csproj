@@ -5,4 +5,9 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RestaurantCustomerLib\RestaurantCustomerLib.csproj" />
+    <ProjectReference Include="..\RestaurantLib\RestaurantLib.csproj" />
+  </ItemGroup>
+
 </Project>
