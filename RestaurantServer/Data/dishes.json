@@ -1,0 +1,29 @@
+[
+    {
+        "DishId": 1,
+        "Name": "Yumbo meal",
+        "Description": "Filled with tasty and yum.",
+        "Price": 120.5
+    },
+    {
+        "DishId": 2,
+        "Name": "Fläskkorv",
+        "Description": "A Kurt favourite.",
+        "Price": 50
+    },    {
+        "DishId": 3,
+        "Name": "Porridge",
+        "Description": "Comes with lingon or cinnamon.",
+        "Price": 25
+    },    {
+        "DishId": 4,
+        "Name": "The Rick Astley Special",
+        "Description": "A sandwich with toblerone and mayonnaise.",
+        "Price": 98
+    },    {
+        "DishId": 5,
+        "Name": "Meatlover's salad",
+        "Description": "A 100% meat salad with ham, sausage and distinct lack of vegetables.",
+        "Price": 75
+    }
+]

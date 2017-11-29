@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Customer", "Customer", "{48
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RestaurantLib", "RestaurantLib\RestaurantLib.csproj", "{159F0E79-B786-4496-B3C1-6FE3D8F0E75B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestaurantServer", "RestaurantServer\RestaurantServer.csproj", "{B0EF3242-1F4B-4C77-A3D6-7768576702F6}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestaurantKitchenConsole", "RestaurantKitchenConsole\RestaurantKitchenConsole.csproj", "{6418D859-CCE4-45F9-BC60-C6F6CF4CDDDA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KitchenLib", "KitchenLib\KitchenLib.csproj", "{E4556888-26D4-4EFD-B090-BA8387EF9C3A}"
