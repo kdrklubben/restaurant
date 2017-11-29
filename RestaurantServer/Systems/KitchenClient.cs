@@ -1,8 +1,6 @@
-﻿using RestaurantServer.Models;
+﻿using Newtonsoft.Json;
 using RestaurantServer.Utilities;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -31,28 +29,27 @@ namespace RestaurantServer.Systems
 
                 if (!String.IsNullOrWhiteSpace(response))
                 {
-                    Regex dishReadyPattern = new Regex(@"(DISHREADY:)(\p{L}+),(\d+)");
-                    Regex removeOrderPattern = new Regex(@"(REMOVEORDER:)(\p{L}+),(\d+)");
-                    if (response == "DISCONNECT")
+                    Regex dishReadyPattern = new Regex(@"(ORDERDONE);(.*)");
+                    Regex getDishesPattern = new Regex(@"(GETDISHES);(.*)");
+                    Regex getOrdersPattern = new Regex(@"(GETORDERS);(.*)");
+
+                    if (dishReadyPattern.IsMatch(response))
+                    {
+                        Match match = dishReadyPattern.Match(response);
+                        int orderId = JsonConvert.DeserializeObject<int>(match.Groups[1].Value);
+                        ServerSystem.Instance.ConfirmOrder(orderId);
+                    }
+                    else if (getDishesPattern.IsMatch(response))
+                    {
+                        ServerSystem.Instance.SendDishes(_socket);
+                    }
+                    else if (getOrdersPattern.IsMatch(response))
+                    {
+                        ServerSystem.Instance.SendOrders(_socket);
+                    }
+                    else if (response == "DISCONNECT" || Regex.IsMatch("DISCONNECT;.*", response))
                     {
                         break;
-                    }
-                    else if (dishReadyPattern.IsMatch(response))
-                    {
-                        //message received to kitchen
-                        //send order done to customer
-                    }
-                    else if (removeOrderPattern.IsMatch(response))
-                    {
-                        Match match = removeOrderPattern.Match(response);
-                        //delete the order
-                        Customer customer = ServerSystem.Instance.CustomerConnections.FirstOrDefault(x => x.Username == match.Groups[1].ToString());
-                        Order order = customer.Orders.FirstOrDefault(x => x.Dish.DishId == int.Parse(match.Groups[2].ToString()));
-                        if (order != null)
-                        {
-                            customer.Orders.Remove(order);
-                            SocketUtility.Send(customer.Socket, $"REMOVEORDER:{ order.Dish.DishId };", $"An order for { order.Dish.Name } has been removed!");
-                        }
                     }
                 }
             }
