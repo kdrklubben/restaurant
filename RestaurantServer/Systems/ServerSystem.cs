@@ -24,7 +24,7 @@ namespace RestaurantServer.Systems
 
         private ServerSystem()
         {
-            //todo add _socket instansiation from SocketUtility
+            _socket = SocketUtility.CreateServerSocket();
             Dishes = SerializationUtility.ReadDishes();
             CustomerConnections = new List<Customer>();
         }
@@ -70,17 +70,37 @@ namespace RestaurantServer.Systems
                 if (response == "DISCONNECT")
                 {
                     ConsoleLogger.LogWarning($"User gave up while choosing username ({ socket.RemoteEndPoint })");
+                    SocketUtility.CloseConnection(socket);
                     break;
                 }
                 else if (!String.IsNullOrWhiteSpace(response))
                 {
+                    //if kitchen
+                    if (response == "kitchen")
+                    {
+                        if (Kitchen == null || !Kitchen.Connected)
+                        {
+                            Kitchen = socket;
+                            ConsoleLogger.LogInformation($"Kitchen logged on from { socket.RemoteEndPoint }.");
+                            socket.Send("CODE:200;You are now authenticated as the kitchen".ToUtf8ByteArray());
+                            break;
+                        }
+                        else
+                        {
+                            socket.Send("CODE:403;There is already a kitchen client connected".ToUtf8ByteArray());
+                            SocketUtility.CloseConnection(socket);
+                            break;
+                        }
+                    }
+
+                    //if customer
                     if (!CustomerConnections.Any(x => x.Username == response))
                     {
                         //username is vacant
                         Customer customer = new Customer() { Socket = socket, Username = response };
                         CustomerConnections.Add(customer);
 
-                        socket.Send($"CODE:200;You are now logged in as { response }.".ToUtf8ByteArray());
+                        socket.Send($"AUTHCONRFIRMED;You are now logged in as { response }.".ToUtf8ByteArray());
                         new ServerClient(customer);
 
                         ConsoleLogger.LogInformation($"New user connected { response } from { customer.Socket.RemoteEndPoint }");

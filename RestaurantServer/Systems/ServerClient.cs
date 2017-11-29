@@ -28,14 +28,13 @@ namespace RestaurantServer.Systems
                 int byteCount = _client.Socket.Receive(buffer);
 
                 string response = Encoding.UTF8.GetString(buffer, 0, byteCount);
-                Console.WriteLine($"Got message: { response }");
 
                 if (!String.IsNullOrWhiteSpace(response))
                 {
                     Regex order = new Regex(@"(ORDER:)(\d+)");
                     if (response == "DISCONNECT")
                     {
-                        SocketUtility.CloseConnection(_client.Socket);
+                        break;
                     }
                     else if (order.IsMatch(response))
                     {
