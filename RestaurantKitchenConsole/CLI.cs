@@ -55,26 +55,32 @@ namespace RestaurantKitchenConsole
 
         public static void ShowOrders()
         {
-            KitchenDb.GetOrders().ForEach(o => Console.WriteLine($"Orderid: {o.OrderId} --- Dish ordered: {o.Dish.Name}"));
+            if (_connectionSucceeded)
+                KitchenDb.GetOrders().ForEach(o => Console.WriteLine($"Orderid: {o.OrderId} --- Dish ordered: {o.Dish.Name}"));
+            else
+                Console.WriteLine("Must be connected to server.");
         }
 
         private static void MarkOrderDone()
         {
-            try
-            {
-                var order = KitchenDb.GetOrders().SingleOrDefault(o => o.OrderId == int.Parse(Console.ReadLine()));
-                if (order != null)
+            if (_connectionSucceeded)
+                try
                 {
-                    KitchenDb.GetOrders().Remove(order);
-                    _client.ClientSend("ORDERDONE;" + JsonConvert.SerializeObject(order.OrderId));
+                    var order = KitchenDb.GetOrders().SingleOrDefault(o => o.OrderId == int.Parse(Console.ReadLine()));
+                    if (order != null)
+                    {
+                        KitchenDb.GetOrders().Remove(order);
+                        _client.ClientSend("ORDERDONE;" + JsonConvert.SerializeObject(order.OrderId));
+                    }
+
                 }
-                    
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
+            else
+                Console.WriteLine("Must be connected to server.");
         }
 
 
