@@ -21,7 +21,7 @@ namespace RestaurantKitchenConsole
         {
             while (true)
             {
-                Console.Write("Enter command: ");
+                Console.Write("\n\nEnter command: ");
                 CmdParse(Console.ReadLine().ToLower());
             }
         }
@@ -37,6 +37,8 @@ namespace RestaurantKitchenConsole
                     break;
                 case "menu": Menu();
                     break;
+                case "clear": Console.Clear();
+                    break;
                 default: Menu();
                     break;
             }
@@ -45,20 +47,18 @@ namespace RestaurantKitchenConsole
         private static void Connect()
         {
             Console.WriteLine("Kitchen application connecting to server...");
-            _client = new ClientSocket("127.0.0.1", "8081", out _connectionSucceeded);
+            _client = new ClientSocket("127.0.0.1", "8080", out _connectionSucceeded);
             Console.WriteLine(_connectionSucceeded
                 ? "Application is now connected to server."
                 : "Something went wrong try again later.");
-            if (_connectionSucceeded)
-                Menu();
         }
 
         public static void ShowOrders()
         {
-            if (_connectionSucceeded)
+            if (_connectionSucceeded && KitchenDb.GetOrders().Count > 0)
                 KitchenDb.GetOrders().ForEach(o => Console.WriteLine($"Orderid: {o.OrderId} --- Dish ordered: {o.Dish.Name}"));
             else
-                Console.WriteLine("Must be connected to server.");
+                Console.WriteLine(_connectionSucceeded ? "There are currently no unfinnished orders." : "Must be connected to server.");
         }
 
         private static void MarkOrderDone()
@@ -66,13 +66,17 @@ namespace RestaurantKitchenConsole
             if (_connectionSucceeded)
                 try
                 {
-                    var order = KitchenDb.GetOrders().SingleOrDefault(o => o.OrderId == int.Parse(Console.ReadLine()));
+                    Console.Write("Enter order-id to mark order as finnished: ");
+                    var orderId = Console.ReadLine();
+                    var order = KitchenDb.GetOrders().SingleOrDefault(o => o.OrderId == int.Parse(orderId));
                     if (order != null)
                     {
                         KitchenDb.GetOrders().Remove(order);
                         _client.ClientSend("ORDERDONE;" + JsonConvert.SerializeObject(order.OrderId));
+                        Console.WriteLine($"Order {orderId} has now been completed");
                     }
-
+                    else
+                        Console.WriteLine("No order found by that id.");
                 }
                 catch (Exception e)
                 {
@@ -86,7 +90,8 @@ namespace RestaurantKitchenConsole
 
         private static void Menu()
         {
-            Console.WriteLine("1. Connect to server");
+            if (!_connectionSucceeded)
+                Console.WriteLine("1. Connect to server");
             if (_connectionSucceeded)
             {
                 Console.WriteLine("2. Show orders");
