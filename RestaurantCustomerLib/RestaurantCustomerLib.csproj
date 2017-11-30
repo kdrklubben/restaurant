@@ -5,11 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RestaurantLib\RestaurantLib.csproj" />
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
+    <ProjectReference Include="..\RestaurantLib\RestaurantLib.csproj" />
   </ItemGroup>
-
 </Project>

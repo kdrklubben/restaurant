@@ -2,13 +2,12 @@
 using RestaurantLib;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace RestaurantCustomerConsole
 {
     internal class MenuService
     {
-        internal static SocketClient Client { get; private set; }
+        public static SocketClient Client { get; private set; }
         internal static List<Dish> Menu { get; private set; }
 
         public MenuService()
@@ -24,10 +23,13 @@ namespace RestaurantCustomerConsole
             {
                 Console.Write("> ");
                 command = Console.ReadLine();
-                if (command == "connect") Client.Connect();
+                if (command == "connect") {
+                    Client.Connect();
+                    ClaimName();
+                }                
                 if (command == "menu") DisplayMenu();
                 if (command == "exit") {
-                    Client.Disconnect();
+                    //Client.Disconnect();
                     break;
                 }                
                 if (command == "help") DisplayHelp();
@@ -56,25 +58,29 @@ namespace RestaurantCustomerConsole
             }
         }
 
-        void ClaimName()
+        internal static void ClaimName()
         {
             string name;
+            bool IsValid = true;
             do
             {
                 Console.WriteLine("Type a unique name, so the kitchen can reply once your order is completed.\n(hint: your e-mail address is the most likely to be unique)");
                 name = Console.ReadLine();
-                // Ignoring Validate, but should probably guard against SQL injections
-            } while (!Client.IsUniqueName(name));
-            Console.WriteLine($"Welcome {name}");
+                if (name == "kitchen") IsValid = false;
+            } while (!IsValid);
+            Client.Login(name);
         }
 
         void PlaceOrder(string item)
         {
-            if (!int.TryParse(item, out int itemId))
+            int itemId = 0;
+            if (!int.TryParse(item, out itemId))
             {
                 // user inputted a dish name, locate its id
             }
             // send call to server
+            
+            Client.Order(itemId);
         }
     }
 }

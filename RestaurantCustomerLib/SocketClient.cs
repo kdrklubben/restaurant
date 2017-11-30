@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Newtonsoft.Json;
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -8,21 +7,12 @@ using System.Threading.Tasks;
 
 namespace RestaurantCustomerLib
 {
-    //* On start, provide a unique identifier
-    //* Let user view the menu
-    //* Let user place an order
-    //    * send that order to the server
-    //* Recieve notification when user's order is complete
-    //	* client must listen for notifications
     public class SocketClient
     {
-        TcpClient client; // Helper on Socket class, e.g. defaults to tcp protocol
-        NetworkStream networkstream;
-        private Task Listen { get; set; }
-        //public SocketClient()
-        //{
-        //    Connect();
-        //}
+        TcpClient client;
+        internal static NetworkStream networkstream;
+        public Listener Listener { get; private set; }
+        private Sender sender;
 
         IPEndPoint RemoteEndPoint()
         {
@@ -61,10 +51,10 @@ namespace RestaurantCustomerLib
 
                 Console.WriteLine(response);
 
-                Listen = new Task(() => NotificationListen());
-                Listen.Start();
+                Task task = new Task(() => Listener = new Listener(networkstream));
+                task.Start();
 
-                SendOrder(Console.ReadLine());
+                sender = new Sender(networkstream);
             }
             catch
             {
@@ -73,51 +63,13 @@ namespace RestaurantCustomerLib
             }
         }
 
-        public void Disconnect()
+        public void Order(int id)
         {
-            SendOrder("exit");
-            NotificationListen("exit");
+            sender.Command($"PLACEORDER;{JsonConvert.SerializeObject(id)}");
         }
-
-        void SendOrder(string message)
+        public void Login(string name)
         {
-            //Console.WriteLine("Exit with 'exit'");
-            while (true)
-            {                
-                if (message == "exit") break;
-
-                char[] chars = message.ToCharArray();
-                byte[] bytesToSend = Encoding.ASCII.GetBytes(chars, 0, message.Length);
-                networkstream.Write(bytesToSend, 0, bytesToSend.Length);
-                networkstream.Flush();
-            }
-        }
-
-        void NotificationListen(string order = "")
-        {
-            //Console.WriteLine("Recieved data from server");
-            while (true)
-            {
-                if (order == "exit") break;
-                byte[] buffer = new byte[1024];
-                int recieve = networkstream.Read(buffer, 0, buffer.Length);
-                string message = Encoding.ASCII.GetString(buffer, 0, recieve);
-                // If needed, de-serialize the string into an order, or a list of dish, whichever the server guys send
-                Console.WriteLine(message);
-            }
-        }
-
-        public bool IsUniqueName(string name)
-        {
-            List<string> takenNames = new List<string>(); // equals result of a name-fetching call to the server
-            foreach (string item in takenNames)
-            {
-                if (item == name)
-                {
-                    return false;
-                }
-            }
-            return true;
+            sender.Command($"LOGIN;{name}");
         }
     }
 }
