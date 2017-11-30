@@ -1,9 +1,7 @@
 ﻿using RestaurantServer.Models;
 using RestaurantServer.Systems;
-using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Net;
-using System;
 
 namespace RestaurantServer.Utilities
 {
@@ -46,11 +44,6 @@ namespace RestaurantServer.Utilities
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             socket.Bind(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 8080));
             return socket;
-        }
-
-        internal static void Send(Socket socket, string command, string message)
-        {
-            throw new NotImplementedException();
         }
     }
 }

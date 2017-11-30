@@ -1,5 +1,7 @@
-﻿using RestaurantLib;
+﻿using Newtonsoft.Json;
+using RestaurantLib;
 using RestaurantLib.Extensions;
+using RestaurantServer.Extensions;
 using RestaurantServer.Models;
 using RestaurantServer.Utilities;
 using System;
@@ -7,6 +9,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RestaurantServer.Systems
@@ -18,6 +22,7 @@ namespace RestaurantServer.Systems
         internal readonly List<Dish> Dishes;
         internal readonly List<Customer> CustomerConnections;
         internal Socket Kitchen { get; set; }
+        private int OrderIdCounter { get; set; }
 
         static ServerSystem()
         { }
@@ -27,6 +32,7 @@ namespace RestaurantServer.Systems
             _socket = SocketUtility.CreateServerSocket();
             Dishes = SerializationUtility.ReadDishes();
             CustomerConnections = new List<Customer>();
+            OrderIdCounter = 1;
         }
 
         internal static ServerSystem Instance
@@ -39,94 +45,173 @@ namespace RestaurantServer.Systems
             Dish dish = Dishes.SingleOrDefault(x => x.DishId == dishId);
             if (dish != null)
             {
-                customer.Orders.Add(new Order() { Dish = dish, IsDone = false });
+                OrderIdCounter++;
+                Order order = new Order() { OrderId = OrderIdCounter, Dish = dish, IsDone = false };
+                customer.Orders.Add(order);
+                if (Kitchen != null && Kitchen.Connected)
+                {
+                    customer.Socket.SendString("PLACEORDER", JsonConvert.SerializeObject(order));
+                }
             }
         }
 
-        internal void Listen()
+        internal void ConfirmOrder(int orderId)
+        {
+            Customer orderCustomer = CustomerConnections.SingleOrDefault(x => x.Orders.Any(y => y.OrderId == orderId));
+            if (orderCustomer != null)
+            {
+                Order order = orderCustomer.Orders.Single(x => x.OrderId == orderId);
+                order.IsDone = true;
+                if (orderCustomer.Socket.Connected)
+                {
+                    orderCustomer.Socket.SendString("ORDERDONE", JsonConvert.SerializeObject(orderId));
+                }
+                orderCustomer.Orders.Remove(order);
+            }
+        }
+
+        internal void SendDishes(Socket socket)
+        {
+            socket.SendString("GETDISHES", JsonConvert.SerializeObject(Dishes));
+        }
+
+        internal void SendUnfinishedOrdersToKitchen()
+        {
+            if (Kitchen != null && Kitchen.Connected)
+            {
+                List<Order> orders = new List<Order>();
+                CustomerConnections.ForEach(x => orders.AddRange(x.Orders.Where(y => !y.IsDone)));
+
+                Kitchen.SendString("GETORDERS", JsonConvert.SerializeObject(orders));
+            }
+        }
+
+        internal void SendCustomerOrders(Customer customer)
+        {
+            customer.Socket.SendString("GETORDERS", JsonConvert.SerializeObject(customer.Orders));
+        }
+
+        private void Listen()
         {
             while (true)
             {
                 _socket.Listen(3);
                 Socket clientSocket = _socket.Accept();
-                
+
                 new Task(() => WaitForAuthentication(clientSocket)).Start();
             }
         }
 
         private void WaitForAuthentication(Socket socket)
         {
-            while (true)
+            ConsoleLogger.LogInformation($"New connection from { socket.RemoteEndPoint }. Waiting for authentication.");
+            while (true && socket != null && socket.Connected)
             {
-                socket.Send("Please enter your desired username".ToUtf8ByteArray());
+                socket.SendString("LOGIN", "Please enter your desired username");
 
                 byte[] buffer = new byte[1024];
                 int byteCount = socket.Receive(buffer);
+                if (byteCount == 0)
+                    break;
 
                 string response = Encoding.UTF8.GetString(buffer, 0, byteCount);
 
-                ConsoleLogger.LogInformation($"Got message: { response }");
-
-                if (response == "DISCONNECT")
+                Regex loginPattern = new Regex("(LOGIN);p{L}+");
+                if (response == "DISCONNECT" || Regex.IsMatch("DISCONNECT;.*", response))
                 {
                     ConsoleLogger.LogWarning($"User gave up while choosing username ({ socket.RemoteEndPoint })");
                     SocketUtility.CloseConnection(socket);
                     break;
                 }
-                else if (!String.IsNullOrWhiteSpace(response))
+                else if (loginPattern.IsMatch(response))
                 {
-                    //if kitchen
-                    if (response == "kitchen")
+                    string username = loginPattern.Match(response).Groups[1].Value;
+                    if (username == "kitchen")
                     {
                         if (Kitchen == null || !Kitchen.Connected)
                         {
                             Kitchen = socket;
                             ConsoleLogger.LogInformation($"Kitchen logged on from { socket.RemoteEndPoint }.");
-                            socket.Send("CODE:200;You are now authenticated as the kitchen".ToUtf8ByteArray());
+                            socket.SendString("AUTHCONFIRMED", "You are now authenticated as the kitchen");
                             break;
                         }
                         else
                         {
-                            socket.Send("CODE:403;There is already a kitchen client connected".ToUtf8ByteArray());
+                            socket.SendString("AUTHDENIED", "There is already a kitchen client connected");
                             SocketUtility.CloseConnection(socket);
+
+                            ConsoleLogger.LogWarning($"Refused kitchen login attempt from { socket.RemoteEndPoint }");
                             break;
                         }
                     }
-
-                    //if customer
-                    if (!CustomerConnections.Any(x => x.Username == response))
+                    else if (!CustomerConnections.Any(x => x.Username == username))
                     {
                         //username is vacant
-                        Customer customer = new Customer() { Socket = socket, Username = response };
+                        Customer customer = new Customer() { Socket = socket, Username = username };
                         CustomerConnections.Add(customer);
 
-                        socket.Send($"AUTHCONRFIRMED;You are now logged in as { response }.".ToUtf8ByteArray());
-                        new ServerClient(customer);
+                        socket.SendString("AUTHCONFIRMED", $"You are now logged in as { username }.");
+                        new CustomerClient(customer);
 
-                        ConsoleLogger.LogInformation($"New user connected { response } from { customer.Socket.RemoteEndPoint }");
-
+                        ConsoleLogger.LogInformation($"New user { username } connected from { customer.Socket.RemoteEndPoint }");
                         break;
                     }
-                    else if (CustomerConnections.Any(x => x.Username == response && x.Socket.Connected))
+                    else if (CustomerConnections.Any(x => x.Username == username && x.Socket.Connected))
                     {
                         //the username is occupied and socket busy
-                        socket.Send($"CODE:403;Someone else is already using the username { response } - please choose a different one.".ToUtf8ByteArray());
+                        socket.SendString("AUTHDENIED", $"Someone else is already using the username { username } - please choose a different one.");
                     }
                     else
                     {
                         //the username is occupied and socket vacant
-                        Customer customer = CustomerConnections.Single(x => x.Username == response);
+                        Customer customer = CustomerConnections.Single(x => x.Username == username);
                         customer.Socket = socket;
-                        
-                        socket.Send($"CODE:200;Welcome back { response }. We've saved your orders for you, but the kitchen might have discarded old, unclaimed orders.".ToUtf8ByteArray());
-                        new ServerClient(customer);
 
-                        ConsoleLogger.LogInformation($"User { response } reconnected from { customer.Socket.RemoteEndPoint }");
+                        socket.SendString("AUTHCONFIRMED", $"Welcome back { username }. We've saved your orders for you, but old orders might have been discarded.");
+                        new CustomerClient(customer);
 
+                        ConsoleLogger.LogInformation($"User { username } reconnected from { customer.Socket.RemoteEndPoint }");
                         break;
                     }
                 }
+                else
+                {
+                    ConsoleLogger.LogError($"Invalid format from { socket.RemoteEndPoint } while waiting for authentication:\n{ response }");
+                }
             }
         }
-    }
+
+        internal void StartServer()
+        {
+            new Task(() => Listen()).Start();
+            new Task(() => Timer()).Start();
+            Console.WriteLine("Server started using loopback address. Press ESC to shutdown and quit.");
+
+            while (true)
+            {
+                if (Console.ReadKey(true).Key == ConsoleKey.Escape)
+                    ShutdownServer();
+            }
+        }
+
+        internal void ShutdownServer()
+        {
+            SocketUtility.CloseAllConnections();
+            Environment.Exit(0);
+        }
+
+        internal void Timer()
+        {
+            new Timer(RemoveOldOrders, new AutoResetEvent(false), 60000, 60000);
+        }
+
+        internal void RemoveOldOrders(Object stateinfo)
+        {
+            foreach (var customer in CustomerConnections)
+            {
+                customer.Orders.RemoveAll(x => x.OrderPlaced - DateTime.Now > TimeSpan.FromHours(1) && x.IsDone);               
+            }
+            ConsoleLogger.LogInformation($"All done orders that were placed before {DateTime.Now.AddHours(-1)} were cleaned up.");
+        }
+    }   
 }
