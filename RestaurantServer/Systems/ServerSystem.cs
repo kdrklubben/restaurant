@@ -22,6 +22,7 @@ namespace RestaurantServer.Systems
         internal readonly List<Dish> Dishes;
         internal readonly List<Customer> CustomerConnections;
         internal Socket Kitchen { get; set; }
+        private int OrderIdCounter { get; set; }
 
         static ServerSystem()
         { }
@@ -31,6 +32,7 @@ namespace RestaurantServer.Systems
             _socket = SocketUtility.CreateServerSocket();
             Dishes = SerializationUtility.ReadDishes();
             CustomerConnections = new List<Customer>();
+            OrderIdCounter = 1;
         }
 
         internal static ServerSystem Instance
@@ -43,8 +45,13 @@ namespace RestaurantServer.Systems
             Dish dish = Dishes.SingleOrDefault(x => x.DishId == dishId);
             if (dish != null)
             {
-                customer.Orders.Add(new Order() { Dish = dish, IsDone = false, OrderPlaced = DateTime.Now });
-                //todo add broadcast to kitchen
+                OrderIdCounter++;
+                Order order = new Order() { OrderId = OrderIdCounter, Dish = dish, IsDone = false };
+                customer.Orders.Add(order);
+                if (Kitchen != null && Kitchen.Connected)
+                {
+                    customer.Socket.SendString("PLACEORDER", JsonConvert.SerializeObject(order));
+                }
             }
         }
 
@@ -68,12 +75,20 @@ namespace RestaurantServer.Systems
             socket.SendString("GETDISHES", JsonConvert.SerializeObject(Dishes));
         }
 
-        internal void SendOrders(Socket socket)
+        internal void SendUnfinishedOrdersToKitchen()
         {
-            List<Order> orders = new List<Order>();
-            CustomerConnections.ForEach(x => orders.AddRange(x.Orders.Where(y => !y.IsDone)));
+            if (Kitchen != null && Kitchen.Connected)
+            {
+                List<Order> orders = new List<Order>();
+                CustomerConnections.ForEach(x => orders.AddRange(x.Orders.Where(y => !y.IsDone)));
 
-            socket.SendString("GETORDERS", JsonConvert.SerializeObject(orders));
+                Kitchen.SendString("GETORDERS", JsonConvert.SerializeObject(orders));
+            }
+        }
+
+        internal void SendCustomerOrders(Customer customer)
+        {
+            customer.Socket.SendString("GETORDERS", JsonConvert.SerializeObject(customer.Orders));
         }
 
         private void Listen()

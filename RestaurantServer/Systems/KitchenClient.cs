@@ -47,7 +47,7 @@ namespace RestaurantServer.Systems
                     }
                     else if (getOrdersPattern.IsMatch(response))
                     {
-                        ServerSystem.Instance.SendOrders(_socket);
+                        ServerSystem.Instance.SendUnfinishedOrdersToKitchen();
                     }
                     else if (response == "DISCONNECT" || Regex.IsMatch("DISCONNECT;.*", response))
                     {

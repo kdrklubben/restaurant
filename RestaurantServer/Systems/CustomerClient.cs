@@ -33,6 +33,7 @@ namespace RestaurantServer.Systems
                 {
                     Regex placeOrderPattern = new Regex(@"(PLACEORDER);(.+)");
                     Regex getDishesPattern = new Regex(@"(GETDISHES);(.*)");
+                    Regex getOrdersPattern = new Regex(@"(GETORDERS);(.*)");
 
                     if (placeOrderPattern.IsMatch(response))
                     {
@@ -42,6 +43,10 @@ namespace RestaurantServer.Systems
                     else if (getDishesPattern.IsMatch(response))
                     {
                         ServerSystem.Instance.SendDishes(_client.Socket);
+                    }
+                    else if (getOrdersPattern.IsMatch(response))
+                    {
+                        ServerSystem.Instance.SendCustomerOrders(_client);
                     }
                     else if (response == "DISCONNECT" || Regex.IsMatch("DISCONNECT;.*", response))
                     {
