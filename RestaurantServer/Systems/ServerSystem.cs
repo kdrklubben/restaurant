@@ -4,6 +4,7 @@ using RestaurantLib.Extensions;
 using RestaurantServer.Extensions;
 using RestaurantServer.Models;
 using RestaurantServer.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -74,7 +75,7 @@ namespace RestaurantServer.Systems
             socket.SendString("GETORDERS", JsonConvert.SerializeObject(orders));
         }
 
-        internal void Listen()
+        private void Listen()
         {
             while (true)
             {
@@ -87,9 +88,10 @@ namespace RestaurantServer.Systems
 
         private void WaitForAuthentication(Socket socket)
         {
+            ConsoleLogger.LogInformation($"New connection from { socket.RemoteEndPoint }. Waiting for authentication.");
             while (true && socket != null && socket.Connected)
             {
-                socket.Send("Please enter your desired username".ToUtf8ByteArray());
+                socket.SendString("LOGIN", "Please enter your desired username");
 
                 byte[] buffer = new byte[1024];
                 int byteCount = socket.Receive(buffer);
@@ -97,7 +99,7 @@ namespace RestaurantServer.Systems
                 string response = Encoding.UTF8.GetString(buffer, 0, byteCount);
 
                 Regex loginPattern = new Regex("(LOGIN);p{L}+");
-                if (response == "DISCONNECT" || Regex.IsMatch("DISCONNECT;.+", response))
+                if (response == "DISCONNECT" || Regex.IsMatch("DISCONNECT;.*", response))
                 {
                     ConsoleLogger.LogWarning($"User gave up while choosing username ({ socket.RemoteEndPoint })");
                     SocketUtility.CloseConnection(socket);
@@ -119,6 +121,8 @@ namespace RestaurantServer.Systems
                         {
                             socket.SendString("AUTHDENIED", "There is already a kitchen client connected");
                             SocketUtility.CloseConnection(socket);
+
+                            ConsoleLogger.LogWarning($"Refused kitchen login attempt from { socket.RemoteEndPoint }");
                             break;
                         }
                     }
@@ -131,8 +135,7 @@ namespace RestaurantServer.Systems
                         socket.SendString("AUTHCONFIRMED", $"You are now logged in as { username }.");
                         new CustomerClient(customer);
 
-                        ConsoleLogger.LogInformation($"New user connected { username } from { customer.Socket.RemoteEndPoint }");
-
+                        ConsoleLogger.LogInformation($"New user { username } connected from { customer.Socket.RemoteEndPoint }");
                         break;
                     }
                     else if (CustomerConnections.Any(x => x.Username == username && x.Socket.Connected))
@@ -150,11 +153,32 @@ namespace RestaurantServer.Systems
                         new CustomerClient(customer);
 
                         ConsoleLogger.LogInformation($"User { username } reconnected from { customer.Socket.RemoteEndPoint }");
-
                         break;
                     }
                 }
+                else
+                {
+                    ConsoleLogger.LogError($"Invalid format from { socket.RemoteEndPoint } while waiting for authentication:\n{ response }");
+                }
             }
+        }
+
+        internal void StartServer()
+        {
+            new Task(() => Listen());
+            Console.WriteLine("Server started using loopback address. Press ESC to shutdown and quit.");
+
+            while (true)
+            {
+                if (Console.ReadKey(true).Key == ConsoleKey.Escape)
+                    ShutdownServer();
+            }
+        }
+
+        internal void ShutdownServer()
+        {
+            SocketUtility.CloseAllConnections();
+            Environment.Exit(0);
         }
     }
 }
