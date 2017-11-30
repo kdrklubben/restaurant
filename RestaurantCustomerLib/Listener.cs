@@ -1,4 +1,7 @@
-﻿using RestaurantCustomerLib.Delegates;
+﻿using Newtonsoft.Json;
+using RestaurantCustomerLib.Delegates;
+using RestaurantLib;
+using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -12,6 +15,7 @@ namespace RestaurantCustomerLib
         public event AuthConfirmed AuthConfirmed;
         public event AuthDenied AuthDenied;
         public event OrderDone OrderDone;
+        public event GetDishes GetDishes;
         public Listener(NetworkStream stream)
         {
             networkstream = stream;
@@ -30,6 +34,10 @@ namespace RestaurantCustomerLib
                 // Invoke events for corresponding order type, in order to never directly call a specific UI from the lib
                 switch (data.Groups[0].ToString())
                 {
+                    case "GETDISHES":
+                        List<Dish> list = JsonConvert.DeserializeObject<List<Dish>>(data.Groups[1].ToString());
+                        GetDishes.Invoke(list);
+                        break;
                     case "AUTHCONFIRMED":
                         AuthConfirmed.Invoke(data.Groups[1].ToString());
                         break;
