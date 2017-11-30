@@ -9,5 +9,6 @@ namespace RestaurantLib
         public int OrderId { get; set; }
         public Dish Dish { get; set; }
         public bool IsDone { get; set; }
+        public DateTime OrderPlaced { get; set; }
     }
 }

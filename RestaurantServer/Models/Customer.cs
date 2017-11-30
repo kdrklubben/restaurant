@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using RestaurantLib;
+using System.Collections.Generic;
 using System.Net.Sockets;
 
 namespace RestaurantServer.Models

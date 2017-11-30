@@ -1,4 +1,5 @@
 ﻿using RestaurantServer.Systems;
+using System;
 
 namespace RestaurantServer
 {
@@ -6,8 +7,7 @@ namespace RestaurantServer
     {
         static void Main(string[] args)
         {
-            ServerSystem server = ServerSystem.Instance;
-            server.Listen();
+            ServerSystem.Instance.StartServer();
         }
     }
 }

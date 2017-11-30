@@ -1,29 +1,29 @@
 ﻿using Newtonsoft.Json;
+using RestaurantServer.Models;
 using RestaurantServer.Utilities;
 using System;
-using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace RestaurantServer.Systems
 {
-    internal class KitchenClient
+    internal class CustomerClient
     {
-        internal readonly Socket _socket;
+        private readonly Customer _client;
 
-        public KitchenClient(Socket socket)
+        public CustomerClient(Customer client)
         {
-            _socket = socket;
+            _client = client;
             new Task(() => Listen()).Start();
         }
 
         private void Listen()
         {
-            while (true && _socket != null && _socket.Connected)
+            while (true && _client.Socket != null && _client.Socket.Connected)
             {
                 byte[] buffer = new byte[1024];
-                int byteCount = _socket.Receive(buffer);
+                int byteCount = _client.Socket.Receive(buffer);
                 if (byteCount == 0)
                     break;
 
@@ -31,32 +31,31 @@ namespace RestaurantServer.Systems
 
                 if (!String.IsNullOrWhiteSpace(response))
                 {
-                    Regex dishReadyPattern = new Regex(@"(ORDERDONE);(.*)");
+                    Regex placeOrderPattern = new Regex(@"(PLACEORDER);(.+)");
                     Regex getDishesPattern = new Regex(@"(GETDISHES);(.*)");
                     Regex getOrdersPattern = new Regex(@"(GETORDERS);(.*)");
 
-                    if (dishReadyPattern.IsMatch(response))
+                    if (placeOrderPattern.IsMatch(response))
                     {
-                        Match match = dishReadyPattern.Match(response);
-                        int orderId = JsonConvert.DeserializeObject<int>(match.Groups[1].Value);
-                        ServerSystem.Instance.ConfirmOrder(orderId);
+                        Match match = placeOrderPattern.Match(response);
+                        ServerSystem.Instance.PlaceOrder(JsonConvert.DeserializeObject<int>(match.Groups[1].Value), _client);
                     }
                     else if (getDishesPattern.IsMatch(response))
                     {
-                        ServerSystem.Instance.SendDishes(_socket);
+                        ServerSystem.Instance.SendDishes(_client.Socket);
                     }
                     else if (getOrdersPattern.IsMatch(response))
                     {
-                        ServerSystem.Instance.SendUnfinishedOrdersToKitchen();
+                        ServerSystem.Instance.SendCustomerOrders(_client);
                     }
                     else if (response == "DISCONNECT" || Regex.IsMatch("DISCONNECT;.*", response))
                     {
                         break;
-                    }
+                    } 
                 }
             }
 
-            SocketUtility.CloseConnection(_socket);
+            SocketUtility.CloseConnection(_client.Socket);
         }
     }
 }
