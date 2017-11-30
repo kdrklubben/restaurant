@@ -21,6 +21,7 @@ namespace RestaurantServer.Systems
         internal readonly List<Dish> Dishes;
         internal readonly List<Customer> CustomerConnections;
         internal Socket Kitchen { get; set; }
+        private int OrderIdCounter { get; set; }
 
         static ServerSystem()
         { }
@@ -30,6 +31,7 @@ namespace RestaurantServer.Systems
             _socket = SocketUtility.CreateServerSocket();
             Dishes = SerializationUtility.ReadDishes();
             CustomerConnections = new List<Customer>();
+            OrderIdCounter = 1;
         }
 
         internal static ServerSystem Instance
@@ -42,8 +44,13 @@ namespace RestaurantServer.Systems
             Dish dish = Dishes.SingleOrDefault(x => x.DishId == dishId);
             if (dish != null)
             {
-                customer.Orders.Add(new Order() { Dish = dish, IsDone = false });
-                //todo add broadcast to kitchen
+                OrderIdCounter++;
+                Order order = new Order() { OrderId = OrderIdCounter, Dish = dish, IsDone = false };
+                customer.Orders.Add(order);
+                if (Kitchen != null && Kitchen.Connected)
+                {
+                    customer.Socket.SendString("PLACEORDER", JsonConvert.SerializeObject(order));
+                }
             }
         }
 
