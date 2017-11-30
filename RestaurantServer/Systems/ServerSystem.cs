@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RestaurantServer.Systems
@@ -42,7 +43,7 @@ namespace RestaurantServer.Systems
             Dish dish = Dishes.SingleOrDefault(x => x.DishId == dishId);
             if (dish != null)
             {
-                customer.Orders.Add(new Order() { Dish = dish, IsDone = false });
+                customer.Orders.Add(new Order() { Dish = dish, IsDone = false, OrderPlaced = DateTime.Now });
                 //todo add broadcast to kitchen
             }
         }
@@ -81,7 +82,7 @@ namespace RestaurantServer.Systems
             {
                 _socket.Listen(3);
                 Socket clientSocket = _socket.Accept();
-                
+
                 new Task(() => WaitForAuthentication(clientSocket)).Start();
             }
         }
@@ -150,7 +151,7 @@ namespace RestaurantServer.Systems
                         //the username is occupied and socket vacant
                         Customer customer = CustomerConnections.Single(x => x.Username == username);
                         customer.Socket = socket;
-                        
+
                         socket.SendString("AUTHCONFIRMED", $"Welcome back { username }. We've saved your orders for you, but old orders might have been discarded.");
                         new CustomerClient(customer);
 
@@ -167,7 +168,8 @@ namespace RestaurantServer.Systems
 
         internal void StartServer()
         {
-            new Task(() => Listen());
+            new Task(() => Listen()).Start();
+            new Task(() => Timer()).Start();
             Console.WriteLine("Server started using loopback address. Press ESC to shutdown and quit.");
 
             while (true)
@@ -182,5 +184,19 @@ namespace RestaurantServer.Systems
             SocketUtility.CloseAllConnections();
             Environment.Exit(0);
         }
-    }
+
+        internal void Timer()
+        {
+            new Timer(RemoveOldOrders, new AutoResetEvent(false), 60000, 60000);
+        }
+
+        internal void RemoveOldOrders(Object stateinfo)
+        {
+            foreach (var customer in CustomerConnections)
+            {
+                customer.Orders.RemoveAll(x => x.OrderPlaced - DateTime.Now > TimeSpan.FromHours(1) && x.IsDone);               
+            }
+            ConsoleLogger.LogInformation($"All done orders that were placed before {DateTime.Now.AddHours(-1)} were cleaned up.");
+        }
+    }   
 }
