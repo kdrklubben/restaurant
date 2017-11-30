@@ -56,7 +56,7 @@ namespace RestaurantServer.Systems
                 order.IsDone = true;
                 if (orderCustomer.Socket.Connected)
                 {
-                    orderCustomer.Socket.SendString("ORDERDONE", @"Your order is done \o/");
+                    orderCustomer.Socket.SendString("ORDERDONE", JsonConvert.SerializeObject(orderId));
                 }
                 orderCustomer.Orders.Remove(order);
             }
@@ -95,6 +95,8 @@ namespace RestaurantServer.Systems
 
                 byte[] buffer = new byte[1024];
                 int byteCount = socket.Receive(buffer);
+                if (byteCount == 0)
+                    break;
 
                 string response = Encoding.UTF8.GetString(buffer, 0, byteCount);
 
@@ -107,7 +109,7 @@ namespace RestaurantServer.Systems
                 }
                 else if (loginPattern.IsMatch(response))
                 {
-                    string username = loginPattern.Match(response).Value;
+                    string username = loginPattern.Match(response).Groups[1].Value;
                     if (username == "kitchen")
                     {
                         if (Kitchen == null || !Kitchen.Connected)

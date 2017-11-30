@@ -1,4 +1,5 @@
-﻿using RestaurantServer.Models;
+﻿using Newtonsoft.Json;
+using RestaurantServer.Models;
 using RestaurantServer.Utilities;
 using System;
 using System.Text;
@@ -14,8 +15,7 @@ namespace RestaurantServer.Systems
         public CustomerClient(Customer client)
         {
             _client = client;
-            Task listen = new Task(() => Listen());
-            listen.Start();
+            new Task(() => Listen()).Start();
         }
 
         private void Listen()
@@ -24,6 +24,8 @@ namespace RestaurantServer.Systems
             {
                 byte[] buffer = new byte[1024];
                 int byteCount = _client.Socket.Receive(buffer);
+                if (byteCount == 0)
+                    break;
 
                 string response = Encoding.UTF8.GetString(buffer, 0, byteCount);
 
@@ -35,7 +37,7 @@ namespace RestaurantServer.Systems
                     if (placeOrderPattern.IsMatch(response))
                     {
                         Match match = placeOrderPattern.Match(response);
-                        ServerSystem.Instance.PlaceOrder(int.Parse(match.Groups[1].Value), _client);
+                        ServerSystem.Instance.PlaceOrder(JsonConvert.DeserializeObject<int>(match.Groups[1].Value), _client);
                     }
                     else if (getDishesPattern.IsMatch(response))
                     {

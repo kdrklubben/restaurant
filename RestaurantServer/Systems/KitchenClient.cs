@@ -24,6 +24,8 @@ namespace RestaurantServer.Systems
             {
                 byte[] buffer = new byte[1024];
                 int byteCount = _socket.Receive(buffer);
+                if (byteCount == 0)
+                    break;
 
                 string response = Encoding.UTF8.GetString(buffer, 0, byteCount);
 
