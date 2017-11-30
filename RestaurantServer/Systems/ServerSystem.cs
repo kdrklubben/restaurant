@@ -67,12 +67,20 @@ namespace RestaurantServer.Systems
             socket.SendString("GETDISHES", JsonConvert.SerializeObject(Dishes));
         }
 
-        internal void SendOrders(Socket socket)
+        internal void SendUnfinishedOrdersToKitchen()
         {
-            List<Order> orders = new List<Order>();
-            CustomerConnections.ForEach(x => orders.AddRange(x.Orders.Where(y => !y.IsDone)));
+            if (Kitchen != null && Kitchen.Connected)
+            {
+                List<Order> orders = new List<Order>();
+                CustomerConnections.ForEach(x => orders.AddRange(x.Orders.Where(y => !y.IsDone)));
 
-            socket.SendString("GETORDERS", JsonConvert.SerializeObject(orders));
+                Kitchen.SendString("GETORDERS", JsonConvert.SerializeObject(orders));
+            }
+        }
+
+        internal void SendCustomerOrders(Customer customer)
+        {
+            customer.Socket.SendString("GETORDERS", JsonConvert.SerializeObject(customer.Orders));
         }
 
         private void Listen()
