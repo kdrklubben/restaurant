@@ -2,18 +2,36 @@
 using RestaurantLib;
 using System;
 using System.Collections.Generic;
+using RestaurantCustomerLib.Delegates;
+using RestaurantCustomerConsole.EventHandlers;
 
 namespace RestaurantCustomerConsole
 {
     internal class MenuService
     {
         public static SocketClient Client { get; private set; }
-        internal static List<Dish> Menu { get; private set; }
+        internal static List<Dish> Menu { get; set; } = new List<Dish>();
 
         public MenuService()
         {
-            Client = new SocketClient();
+            Client = new SocketClient();            
+            Client.Connect();
+
+            // This path may seem long, but the rule is: The UI may bind to the lib, but the lib must not bind to the UI
+            Client.Listener.GetDishes += new GetDishes(Handlers.HandleGetDishes);
+            Client.Listener.AuthConfirmed += new AuthConfirmed(Handlers.HandleAuthConfirmed);
+            Client.Listener.AuthDenied += new AuthDenied(Handlers.HandleAuthDenied);
+            Client.Listener.OrderDone += new OrderDone(Handlers.HandleOrderDone);
+
+            Client.GetDishes();
             MainLoop();
+        }
+        ~MenuService()
+        {
+            Client.Listener.GetDishes -= new GetDishes(Handlers.HandleGetDishes);
+            Client.Listener.AuthConfirmed -= new AuthConfirmed(Handlers.HandleAuthConfirmed);
+            Client.Listener.AuthDenied -= new AuthDenied(Handlers.HandleAuthDenied);
+            Client.Listener.OrderDone -= new OrderDone(Handlers.HandleOrderDone);
         }
 
         void MainLoop()
@@ -29,7 +47,7 @@ namespace RestaurantCustomerConsole
                 }                
                 if (command == "menu") DisplayMenu();
                 if (command == "exit") {
-                    //Client.Disconnect();
+                    Client.Disconnect();
                     break;
                 }                
                 if (command == "help") DisplayHelp();
@@ -51,8 +69,7 @@ namespace RestaurantCustomerConsole
 
         void DisplayMenu()
         {
-            List<Dish> menu = new List<Dish>(); // TODO make call to server, GET dishes
-            foreach (Dish item in menu)
+            foreach (Dish item in Menu)
             {
                 Console.WriteLine($"{item.DishId}\t{item.Name}\t{item.Price} SEK\n{item.Description}");
             }
@@ -73,13 +90,15 @@ namespace RestaurantCustomerConsole
 
         void PlaceOrder(string item)
         {
-            int itemId = 0;
-            if (!int.TryParse(item, out itemId))
+            if (!int.TryParse(item, out int itemId))
             {
-                // user inputted a dish name, locate its id
+                itemId = Menu.Find(x => x.Name == item)?.DishId ?? 0;
             }
-            // send call to server
-            
+            if (itemId == 0)
+            {
+                Console.WriteLine($"Found no dish id or name matching '{item}'. Consider looking up the menu and try again.\nIf you used a name, try it's Id number instead.");
+                return;
+            }
             Client.Order(itemId);
         }
     }
