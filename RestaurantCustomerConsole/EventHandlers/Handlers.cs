@@ -6,13 +6,20 @@ namespace RestaurantCustomerConsole.EventHandlers
 {
     internal static class Handlers
     {
+        internal static void HandleLoginResponse(string message)
+        {
+            Console.WriteLine(message);
+            MenuService.ClaimName();
+        }
         internal static void HandleAuthConfirmed(string message)
         {
             Console.WriteLine(message);
         }
         internal static void HandleAuthDenied(string message)
         {
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(message);
+            Console.ResetColor();
             MenuService.ClaimName();
         }
 

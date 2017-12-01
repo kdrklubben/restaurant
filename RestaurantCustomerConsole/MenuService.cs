@@ -16,9 +16,9 @@ namespace RestaurantCustomerConsole
         {
             Client = new SocketClient();            
             Client.Connect();
-            ClaimName();
 
             // This path may seem long, but the rule is: The UI may bind to the lib, but the lib must not bind to the UI
+            Client.Listener.LoginResponse += new LoginResponse(Handlers.HandleLoginResponse);
             Client.Listener.GetDishes += new GetDishes(Handlers.HandleGetDishes);
             Client.Listener.AuthConfirmed += new AuthConfirmed(Handlers.HandleAuthConfirmed);
             Client.Listener.AuthDenied += new AuthDenied(Handlers.HandleAuthDenied);
@@ -26,13 +26,6 @@ namespace RestaurantCustomerConsole
 
             Client.GetDishes();
             MainLoop();
-        }
-        ~MenuService()
-        {
-            Client.Listener.GetDishes -= new GetDishes(Handlers.HandleGetDishes);
-            Client.Listener.AuthConfirmed -= new AuthConfirmed(Handlers.HandleAuthConfirmed);
-            Client.Listener.AuthDenied -= new AuthDenied(Handlers.HandleAuthDenied);
-            Client.Listener.OrderDone -= new OrderDone(Handlers.HandleOrderDone);
         }
 
         void MainLoop()
@@ -42,10 +35,6 @@ namespace RestaurantCustomerConsole
             {
                 Console.Write("> ");
                 command = Console.ReadLine();
-                //if (command == "connect") {
-                //    Client.Connect();
-                //    ClaimName();
-                //}
                 if (command == "menu") DisplayMenu();
                 if (command == "exit") {
                     Client.Disconnect();
@@ -61,7 +50,6 @@ namespace RestaurantCustomerConsole
 
         void DisplayHelp()
         {
-            //Console.WriteLine("Type 'connect' to connect to the server. Note that this should happen automatically before 'release'.");
             Console.WriteLine("Type 'menu' to view all menu options");
             Console.WriteLine("Type 'order [x]' to place an order. 'x' can be the dish's number or name");
             Console.WriteLine("Type 'exit' to close the application");
@@ -82,7 +70,6 @@ namespace RestaurantCustomerConsole
             bool IsValid = true;
             do
             {
-                Console.WriteLine("Type a unique name, so the kitchen can reply once your order is completed.\n(hint: your e-mail address is the most likely to be unique)");
                 name = Console.ReadLine();
                 if (name == "kitchen") IsValid = false;
             } while (!IsValid);

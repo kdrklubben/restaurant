@@ -2,8 +2,6 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace RestaurantCustomerLib
@@ -46,15 +44,9 @@ namespace RestaurantCustomerLib
             {
                 client.Connect(endpoint);
                 networkstream = client.GetStream();
-                int recv = networkstream.Read(buffer, 0, buffer.Length);
-                Match response = Regex.Match(Encoding.ASCII.GetString(buffer, 0, recv),"();()");
 
-                Console.WriteLine(response.Groups[1].ToString());
-
-                // TODO Find way to not proceed until task is started
                 Listener = new Listener(networkstream);
-                Task task = new Task(() => Listener.CommandListener());
-                task.Start();
+                new Task(() => Listener.CommandListener()).Start();
 
                 sender = new Sender(networkstream);
             }
@@ -74,7 +66,9 @@ namespace RestaurantCustomerLib
         }
         public void Order(int id)
         {
-            sender.Command($"PLACEORDER;{JsonConvert.SerializeObject(id)}");
+            //sender.Command($"PLACEORDER;{JsonConvert.SerializeObject(id)}");
+            // TODO remove debug once proven as working
+            sender.Command($"PLACEORDER;1");
         }
         public void Login(string name)
         {

@@ -13,16 +13,11 @@ namespace RestaurantCustomerLib
         }
 
         public void Command(string command)
-        {
-            //Match data = Regex.Match(command,"();()");
-            //string order = data.Groups[0].ToString();
-            //string json = data.Groups[1].ToString();
-            //char[] chars = $"{order};{json}".ToCharArray();
-            
+        {            
             bool isValid = Regex.IsMatch(command, "();()");
             if (!isValid) return;
-            char[] chars = command.ToCharArray();
-            byte[] bytesToSend = Encoding.ASCII.GetBytes(chars, 0, command.Length);
+
+            byte[] bytesToSend = Encoding.ASCII.GetBytes(command);
             networkstream.Write(bytesToSend, 0, bytesToSend.Length);
         }
     }
