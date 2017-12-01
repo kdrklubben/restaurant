@@ -56,23 +56,9 @@ namespace RestaurantCustomerLib
                 Connect();
             }
         }
-        public void Disconnect()
-        {
-            sender.Command("DISCONNECT");
-        }
-        public void GetDishes()
-        {
-            sender.Command("GETDISHES");
-        }
-        public void Order(int id)
-        {
-            //sender.Command($"PLACEORDER;{JsonConvert.SerializeObject(id)}");
-            // TODO remove debug once proven as working
-            sender.Command($"PLACEORDER;1");
-        }
-        public void Login(string name)
-        {
-            sender.Command($"LOGIN;{name}");
-        }
+        public void Disconnect() => sender.Command("DISCONNECT;");
+        public void GetDishes() => sender.Command("GETDISHES;");
+        public void Order(int id) => sender.Command($"PLACEORDER;{JsonConvert.SerializeObject(id)}");
+        public void Login(string name) => sender.Command($"LOGIN;{name}");
     }
 }

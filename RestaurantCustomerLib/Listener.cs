@@ -28,7 +28,7 @@ namespace RestaurantCustomerLib
             {
                 byte[] buffer = new byte[1024];
                 int recieve = networkstream.Read(buffer, 0, buffer.Length);
-                string message = Encoding.ASCII.GetString(buffer, 0, recieve);
+                string message = Encoding.UTF8.GetString(buffer, 0, recieve);
 
                 string[] data = message.Split(';');
                 // Invoke events for corresponding order type, in order to never directly call a specific UI from the lib

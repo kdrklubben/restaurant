@@ -24,7 +24,6 @@ namespace RestaurantCustomerConsole
             Client.Listener.AuthDenied += new AuthDenied(Handlers.HandleAuthDenied);
             Client.Listener.OrderDone += new OrderDone(Handlers.HandleOrderDone);
 
-            Client.GetDishes();
             MainLoop();
         }
 
@@ -60,7 +59,7 @@ namespace RestaurantCustomerConsole
         {
             foreach (Dish item in Menu)
             {
-                Console.WriteLine($"{item.DishId}\t{item.Name}\t{item.Price} SEK\n{item.Description}");
+                Console.WriteLine($"{item.DishId}\t{item.Name}\t{item.Price} SEK\n\t{item.Description}");
             }
         }
 

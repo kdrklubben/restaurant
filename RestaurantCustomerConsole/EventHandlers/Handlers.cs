@@ -13,7 +13,10 @@ namespace RestaurantCustomerConsole.EventHandlers
         }
         internal static void HandleAuthConfirmed(string message)
         {
+            Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine(message);
+            Console.ResetColor();
+            MenuService.Client.GetDishes();
         }
         internal static void HandleAuthDenied(string message)
         {
