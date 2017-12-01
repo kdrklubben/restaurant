@@ -64,7 +64,7 @@ namespace RestaurantKitchenConsole
             if (_connectionSucceeded && KitchenDb.GetOrders().Count > 0)
             KitchenDb.GetOrders().ForEach(o => PrintConsoleMessage(ConsoleColor.Black, $"Orderid: {o.OrderId} --- Dish ordered: {o.Dish.Name}", ConsoleColor.White));
             else
-                Console.WriteLine(_connectionSucceeded ? "There are currently no unfinnished orders." : "Must be connected to server.");
+                Console.WriteLine(_connectionSucceeded ? "There are currently no unfinished orders." : "Must be connected to server.");
         }
 
         private static void MarkOrderDone()
@@ -73,7 +73,7 @@ namespace RestaurantKitchenConsole
                 try
                 {
                     
-                    Console.Write("Enter order-id to mark order as finnished: ");
+                    Console.Write("Enter order-id to mark order as finished: ");
                     var orderId = Console.ReadLine();
                     var order = KitchenDb.GetOrders().SingleOrDefault(o => o.OrderId == int.Parse(orderId));
                     if (order != null)
@@ -83,12 +83,11 @@ namespace RestaurantKitchenConsole
                         PrintConsoleMessage(ConsoleColor.Green, $"Order {orderId} has now been completed", null);
                     }
                     else
-                        PrintConsoleMessage(ConsoleColor.White, "Must be connected to server.", null);
+                        PrintConsoleMessage(ConsoleColor.White, "Order-id does not exists.", null);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    Console.WriteLine(e);
-                    throw;
+                    PrintConsoleMessage(ConsoleColor.Yellow, "That is not a valid order-id", null);
                 }
             else
                 PrintConsoleMessage(ConsoleColor.Red, "Must be connected to server.", null);
