@@ -8,17 +8,24 @@ namespace RestaurantServer.Utilities
     {
         internal static void LogInformation(string message)
         {
-            Console.WriteLine($"Info: { message }");
+            Log(ConsoleColor.Gray, "Info", message);
         }
 
         internal static void LogWarning(string message)
         {
-            Console.WriteLine($"Warning: { message }");
+            Log(ConsoleColor.Yellow, "Warning", message);
         }
 
         internal static void LogError(string message)
         {
-            Console.WriteLine($"Error: { message }");
+            Log(ConsoleColor.Red, "Error", message);
+        }
+
+        private static void Log(ConsoleColor color, string prefix, string message)
+        {
+            Console.ForegroundColor = color;
+            Console.WriteLine($"{ DateTime.Now.ToUniversalTime().ToString("HH:mm:ss") } { prefix }: { message }");
+            Console.ResetColor();
         }
     }
 }
