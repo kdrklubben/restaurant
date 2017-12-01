@@ -40,9 +40,8 @@ namespace RestaurantServer.Systems
             get { return _instance; }
         }
 
-        internal void PlaceOrder(int dishId, Customer customer)
+        internal void PlaceOrder(Dish dish, Customer customer)
         {
-            Dish dish = Dishes.SingleOrDefault(x => x.DishId == dishId);
             if (dish != null)
             {
                 OrderIdCounter++;
@@ -50,7 +49,7 @@ namespace RestaurantServer.Systems
                 customer.Orders.Add(order);
                 if (Kitchen != null && Kitchen.Socket.Connected)
                 {
-                    customer.Socket.SendString("PLACEORDER", JsonConvert.SerializeObject(order));
+                    Kitchen.Socket.SendString("PLACEORDER", JsonConvert.SerializeObject(order));
                 }
             }
         }
@@ -147,9 +146,10 @@ namespace RestaurantServer.Systems
                         else
                         {
                             socket.SendString("AUTHDENIED", "There is already a kitchen client connected");
-                            SocketUtility.CloseConnection(socket);
 
                             ConsoleLogger.LogWarning($"Refused kitchen login attempt from { socket.RemoteEndPoint }");
+                            SocketUtility.CloseConnection(socket);
+
                             break;
                         }
                     }
@@ -185,7 +185,7 @@ namespace RestaurantServer.Systems
                 }
                 else
                 {
-                    ConsoleLogger.LogError($"Invalid format from { socket.RemoteEndPoint } while waiting for authentication:\n{ response }");
+                    ConsoleLogger.LogError($"Invalid format from { socket.RemoteEndPoint } while waiting for authentication:\n\t{ response }");
                 }
             }
         }

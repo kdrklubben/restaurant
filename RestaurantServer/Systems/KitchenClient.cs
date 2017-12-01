@@ -63,6 +63,14 @@ namespace RestaurantServer.Systems
                         ConsoleLogger.LogInformation($"Kitchen from { Socket.RemoteEndPoint } has disconnected");
                         break;
                     }
+                    else
+                    {
+                        ConsoleLogger.LogError($"Invalid format received when listening to kitchen on { Socket.RemoteEndPoint }\n\t{ response }");
+                    }
+                }
+                else
+                {
+                    ConsoleLogger.LogError($"Invalid format received when listening to kitchen on { Socket.RemoteEndPoint }");
                 }
             }
 
