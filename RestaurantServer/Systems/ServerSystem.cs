@@ -220,7 +220,7 @@ namespace RestaurantServer.Systems
             {
                 customer.Orders.RemoveAll(x => x.IsDone && (x.OrderPlaced - DateTime.Now > TimeSpan.FromHours(1)));
             }
-            ConsoleLogger.LogInformation($"All unclaimed, finished orders that were placed before { DateTime.Now.AddHours(-1) } have been removed.");
+            ConsoleLogger.LogInformation($"All unclaimed, finished orders that were placed before { DateTime.Now.AddHours(-1).ToUniversalTime() } have been removed.");
         }
     }
 }
