@@ -17,7 +17,7 @@ namespace RestaurantCustomerLib
 
         IPEndPoint RemoteEndPoint()
         {
-            // Realistically, the server EndPoint is known, so this shouldn't be required of the user... right?
+            // In a real production environment, the server EndPoint would be known, so this is available for development purposes
             IPAddress iPAddress;
             bool isValid = false;
             string input = "";
@@ -32,20 +32,7 @@ namespace RestaurantCustomerLib
                 isValid = IPAddress.TryParse(input, out iPAddress);
             } while (!isValid);
 
-            int port;
-            do
-            {
-                Console.WriteLine("Provide a port (defaults to 8080)");
-                input = Console.ReadLine();
-                if (input == "")
-                {
-                    port = 8080;
-                    break;
-                }
-                isValid = int.TryParse(input, out port);
-            } while (!isValid);
-
-            IPEndPoint endPoint = new IPEndPoint(iPAddress, port);
+            IPEndPoint endPoint = new IPEndPoint(iPAddress, 8080);
             return endPoint;
         }
 
