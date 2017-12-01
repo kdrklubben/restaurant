@@ -31,20 +31,20 @@ namespace RestaurantCustomerLib
                 
                 Match data = Regex.Match(message,"();()");
                 // Invoke events for corresponding order type, in order to never directly call a specific UI from the lib
-                switch (data.Groups[0].ToString())
+                switch (data.Groups[1].ToString())
                 {
                     case "GETDISHES":
-                        List<Dish> list = JsonConvert.DeserializeObject<List<Dish>>(data.Groups[1].ToString());
+                        List<Dish> list = JsonConvert.DeserializeObject<List<Dish>>(data.Groups[2].ToString());
                         GetDishes.Invoke(list);
                         break;
                     case "AUTHCONFIRMED":
-                        AuthConfirmed.Invoke(data.Groups[1].ToString());
+                        AuthConfirmed.Invoke(data.Groups[2].ToString());
                         break;
                     case "AUTHDENIED":
-                        AuthDenied.Invoke(data.Groups[1].ToString());
+                        AuthDenied.Invoke(data.Groups[2].ToString());
                         break;
                     case "ORDERDONE":
-                        OrderDone.Invoke(data.Groups[1].ToString());
+                        OrderDone.Invoke(data.Groups[2].ToString());
                         break;
                     default:
                         break;
