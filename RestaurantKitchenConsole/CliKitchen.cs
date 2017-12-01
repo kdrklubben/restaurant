@@ -52,8 +52,7 @@ namespace RestaurantKitchenConsole
         private static void Connect()
         {
             PrintConsoleMessage(ConsoleColor.Cyan, "Kitchen application connecting to server...", null);
-            _client = new ClientSocket("172.20.201.39", "8080", Logger, out _connectionSucceeded);
-            //_client = new ClientSocket("127.0.0.1", "8080", _logger, out _connectionSucceeded);
+            _client = new ClientSocket("127.0.0.1", "8080", Logger, out _connectionSucceeded);
             if (_connectionSucceeded)
                 PrintConsoleMessage(ConsoleColor.Green, "Application is now connected to server.", null);
             else
