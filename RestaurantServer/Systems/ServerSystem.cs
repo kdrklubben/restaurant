@@ -1,12 +1,12 @@
 ﻿using Newtonsoft.Json;
 using RestaurantLib;
-using RestaurantLib.Extensions;
 using RestaurantServer.Extensions;
 using RestaurantServer.Models;
 using RestaurantServer.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -195,7 +195,7 @@ namespace RestaurantServer.Systems
         {
             new Task(() => Listen()).Start();
             new Task(() => Timer()).Start();
-            ConsoleLogger.LogInformation("Server started using loopback address. Press ESC to shutdown and quit.");
+            ConsoleLogger.LogInformation($"Server started on { ((IPEndPoint)_socket.LocalEndPoint).Address }:{ ((IPEndPoint)_socket.LocalEndPoint).Port }. Press ESC to shutdown and quit.");
 
             while (true)
             {
