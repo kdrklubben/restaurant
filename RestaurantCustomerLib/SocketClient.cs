@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using RestaurantCustomerLib.Delegates;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -12,7 +13,8 @@ namespace RestaurantCustomerLib
         internal static NetworkStream networkstream;
         public Listener Listener { get; private set; }
         private Sender sender;
-
+        public event ServerUnavailableError ServerUnavailableError;
+        public event PromptIpAddress PromptIpAddress;
         IPEndPoint RemoteEndPoint()
         {
             // In a real production environment, the server EndPoint would be known, so this is available for development purposes
@@ -21,8 +23,7 @@ namespace RestaurantCustomerLib
             string input = "";
             do
             {
-                Console.WriteLine("Provide IP adress (defaults to 127.0.0.1)");
-                input = Console.ReadLine();
+                input = PromptIpAddress.Invoke(); 
                 if (input == "")
                 {
                     input = "127.0.0.1";
@@ -37,7 +38,6 @@ namespace RestaurantCustomerLib
         public void Connect()
         {
             var endpoint = RemoteEndPoint();
-            Console.WriteLine("Contacting server");
             byte[] buffer = new byte[1024];
             client = new TcpClient();
             try
@@ -52,8 +52,7 @@ namespace RestaurantCustomerLib
             }
             catch
             {
-                Console.WriteLine("The server is unavailable");
-                Connect();
+                ServerUnavailableError.Invoke();
             }
         }
         public void Disconnect() => sender.Command("DISCONNECT;");

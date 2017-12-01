@@ -11,7 +11,7 @@ namespace RestaurantCustomerConsole
     {
         public static SocketClient Client { get; private set; }
         internal static List<Dish> Menu { get; set; } = new List<Dish>();
-
+        internal static List<Order> Orders { get; set; } = new List<Order>();
         public MenuService()
         {
             Client = new SocketClient();            
@@ -23,7 +23,8 @@ namespace RestaurantCustomerConsole
             Client.Listener.AuthConfirmed += new AuthConfirmed(Handlers.HandleAuthConfirmed);
             Client.Listener.AuthDenied += new AuthDenied(Handlers.HandleAuthDenied);
             Client.Listener.OrderDone += new OrderDone(Handlers.HandleOrderDone);
-
+            Client.ServerUnavailableError += new ServerUnavailableError(Handlers.HandleServerUnavailable);
+            Client.PromptIpAddress += new PromptIpAddress(Handlers.HandlePromptIpAdress);
             MainLoop();
         }
 
@@ -33,7 +34,7 @@ namespace RestaurantCustomerConsole
             while (true)
             {
                 Console.Write("> ");
-                command = Console.ReadLine();
+                command = Console.ReadLine().ToLower();
                 if (command == "menu") DisplayMenu();
                 if (command == "exit") {
                     Client.Disconnect();
@@ -83,9 +84,19 @@ namespace RestaurantCustomerConsole
             }
             if (itemId == 0)
             {
-                Console.WriteLine($"Found no dish id or name matching '{item}'. Consider looking up the menu and try again.\nIf you used a name, try it's Id number instead.");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"ERROR: Found no dish id or name matching '{item}'. Consider looking up the menu and try again.\nIf you used a name, try it's Id number instead.");
+                Console.ResetColor();
                 return;
             }
+            else if (itemId > Menu.Count)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"ERROR: Provided id is too high. Consider looking up the menu and try again.\nIf you used a name, try it's Id number instead.");
+                Console.ResetColor();
+                return;
+            }
+
             Client.Order(itemId);
         }
     }

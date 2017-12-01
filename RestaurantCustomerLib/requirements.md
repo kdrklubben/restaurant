@@ -13,3 +13,6 @@ Let the console manage input and map to data objects
 Let SocketClient manage IO to the server
 Let a repository act as "controller" to the console
 	Reverse-engineer an interface for this repository in order to mock in unit tests?
+
+Return feedback to user upon entering an order
+Format return upon dish completion into sensible output
