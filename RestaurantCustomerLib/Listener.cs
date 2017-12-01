@@ -20,7 +20,6 @@ namespace RestaurantCustomerLib
         {
             networkstream = stream;
             listen = true;
-            CommandListener();
         }
         public void CommandListener()
         {

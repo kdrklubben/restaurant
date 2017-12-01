@@ -16,6 +16,7 @@ namespace RestaurantCustomerConsole
         {
             Client = new SocketClient();            
             Client.Connect();
+            ClaimName();
 
             // This path may seem long, but the rule is: The UI may bind to the lib, but the lib must not bind to the UI
             Client.Listener.GetDishes += new GetDishes(Handlers.HandleGetDishes);
@@ -41,15 +42,15 @@ namespace RestaurantCustomerConsole
             {
                 Console.Write("> ");
                 command = Console.ReadLine();
-                if (command == "connect") {
-                    Client.Connect();
-                    ClaimName();
-                }                
+                //if (command == "connect") {
+                //    Client.Connect();
+                //    ClaimName();
+                //}
                 if (command == "menu") DisplayMenu();
                 if (command == "exit") {
                     Client.Disconnect();
                     break;
-                }                
+                }
                 if (command == "help") DisplayHelp();
                 if (command.StartsWith("order")) {
                     string item = command.Substring(command.IndexOf(' '));
@@ -60,7 +61,7 @@ namespace RestaurantCustomerConsole
 
         void DisplayHelp()
         {
-            Console.WriteLine("Type 'connect' to connect to the server. Note that this should happen automatically before 'release'.");
+            //Console.WriteLine("Type 'connect' to connect to the server. Note that this should happen automatically before 'release'.");
             Console.WriteLine("Type 'menu' to view all menu options");
             Console.WriteLine("Type 'order [x]' to place an order. 'x' can be the dish's number or name");
             Console.WriteLine("Type 'exit' to close the application");

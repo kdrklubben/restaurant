@@ -65,7 +65,8 @@ namespace RestaurantCustomerLib
                 Console.WriteLine(response.Groups[1].ToString());
 
                 // TODO Find way to not proceed until task is started
-                Task task = new Task(() => Listener = new Listener(networkstream));
+                Listener = new Listener(networkstream);
+                Task task = new Task(() => Listener.CommandListener());
                 task.Start();
 
                 sender = new Sender(networkstream);
