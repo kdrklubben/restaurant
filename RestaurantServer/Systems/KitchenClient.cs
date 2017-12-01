@@ -10,20 +10,20 @@ namespace RestaurantServer.Systems
 {
     internal class KitchenClient
     {
-        internal readonly Socket _socket;
+        internal readonly Socket Socket;
 
         public KitchenClient(Socket socket)
         {
-            _socket = socket;
+            Socket = socket;
             new Task(() => Listen()).Start();
         }
 
         private void Listen()
         {
-            while (true && _socket != null && _socket.Connected)
+            while (true && Socket != null && Socket.Connected)
             {
                 byte[] buffer = new byte[1024];
-                int byteCount = _socket.Receive(buffer);
+                int byteCount = Socket.Receive(buffer);
                 if (byteCount == 0)
                     break;
 
@@ -38,12 +38,12 @@ namespace RestaurantServer.Systems
                     if (dishReadyPattern.IsMatch(response))
                     {
                         Match match = dishReadyPattern.Match(response);
-                        int orderId = JsonConvert.DeserializeObject<int>(match.Groups[1].Value);
+                        int orderId = JsonConvert.DeserializeObject<int>(match.Groups[2].Value);
                         ServerSystem.Instance.ConfirmOrder(orderId);
                     }
                     else if (getDishesPattern.IsMatch(response))
                     {
-                        ServerSystem.Instance.SendDishes(_socket);
+                        ServerSystem.Instance.SendDishes(Socket);
                     }
                     else if (getOrdersPattern.IsMatch(response))
                     {
@@ -56,7 +56,7 @@ namespace RestaurantServer.Systems
                 }
             }
 
-            SocketUtility.CloseConnection(_socket);
+            SocketUtility.CloseConnection(Socket);
         }
     }
 }

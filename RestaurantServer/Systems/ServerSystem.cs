@@ -21,7 +21,7 @@ namespace RestaurantServer.Systems
         private readonly Socket _socket;
         internal readonly List<Dish> Dishes;
         internal readonly List<Customer> CustomerConnections;
-        internal Socket Kitchen { get; set; }
+        internal KitchenClient Kitchen { get; set; }
         private int OrderIdCounter { get; set; }
 
         static ServerSystem()
@@ -48,7 +48,7 @@ namespace RestaurantServer.Systems
                 OrderIdCounter++;
                 Order order = new Order() { OrderId = OrderIdCounter, Dish = dish, IsDone = false };
                 customer.Orders.Add(order);
-                if (Kitchen != null && Kitchen.Connected)
+                if (Kitchen != null && Kitchen.Socket.Connected)
                 {
                     customer.Socket.SendString("PLACEORDER", JsonConvert.SerializeObject(order));
                 }
@@ -77,12 +77,12 @@ namespace RestaurantServer.Systems
 
         internal void SendUnfinishedOrdersToKitchen()
         {
-            if (Kitchen != null && Kitchen.Connected)
+            if (Kitchen != null && Kitchen.Socket.Connected)
             {
                 List<Order> orders = new List<Order>();
                 CustomerConnections.ForEach(x => orders.AddRange(x.Orders.Where(y => !y.IsDone)));
 
-                Kitchen.SendString("GETORDERS", JsonConvert.SerializeObject(orders));
+                Kitchen.Socket.SendString("GETORDERS", JsonConvert.SerializeObject(orders));
             }
         }
 
@@ -116,7 +116,7 @@ namespace RestaurantServer.Systems
 
                 string response = Encoding.UTF8.GetString(buffer, 0, byteCount);
 
-                Regex loginPattern = new Regex("(LOGIN);p{L}+");
+                Regex loginPattern = new Regex("(LOGIN);(p{L}+)");
                 if (response == "DISCONNECT" || Regex.IsMatch("DISCONNECT;.*", response))
                 {
                     ConsoleLogger.LogWarning($"User gave up while choosing username ({ socket.RemoteEndPoint })");
@@ -125,12 +125,12 @@ namespace RestaurantServer.Systems
                 }
                 else if (loginPattern.IsMatch(response))
                 {
-                    string username = loginPattern.Match(response).Groups[1].Value;
+                    string username = loginPattern.Match(response).Groups[2].Value;
                     if (username == "kitchen")
                     {
-                        if (Kitchen == null || !Kitchen.Connected)
+                        if (Kitchen == null || !Kitchen.Socket.Connected)
                         {
-                            Kitchen = socket;
+                            Kitchen = new KitchenClient(socket);
                             ConsoleLogger.LogInformation($"Kitchen logged on from { socket.RemoteEndPoint }.");
                             socket.SendString("AUTHCONFIRMED", "You are now authenticated as the kitchen");
                             break;
@@ -209,9 +209,9 @@ namespace RestaurantServer.Systems
         {
             foreach (var customer in CustomerConnections)
             {
-                customer.Orders.RemoveAll(x => x.OrderPlaced - DateTime.Now > TimeSpan.FromHours(1) && x.IsDone);               
+                customer.Orders.RemoveAll(x => x.OrderPlaced - DateTime.Now > TimeSpan.FromHours(1) && x.IsDone);
             }
             ConsoleLogger.LogInformation($"All done orders that were placed before {DateTime.Now.AddHours(-1)} were cleaned up.");
         }
-    }   
+    }
 }
