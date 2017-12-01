@@ -26,6 +26,7 @@ namespace RestaurantKitchenConsole
                 CmdParse(Console.ReadLine().ToLower());
             }
         }
+
         private static void CmdParse(string cmd)
         {
             switch (cmd)
@@ -61,6 +62,7 @@ namespace RestaurantKitchenConsole
 
         private static void ShowOrders()
         {
+            ClientSocket.NewOrderCounter = 0;
             if (_connectionSucceeded && KitchenDb.GetOrders().Count > 0)
             KitchenDb.GetOrders().ForEach(o => PrintConsoleMessage(ConsoleColor.Black, $"Orderid: {o.OrderId} --- Dish ordered: {o.Dish.Name}", ConsoleColor.White));
             else
@@ -72,7 +74,6 @@ namespace RestaurantKitchenConsole
             if (_connectionSucceeded)
                 try
                 {
-                    
                     Console.Write("Enter order-id to mark order as finished: ");
                     var orderId = Console.ReadLine();
                     var order = KitchenDb.GetOrders().SingleOrDefault(o => o.OrderId == int.Parse(orderId));

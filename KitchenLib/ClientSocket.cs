@@ -15,6 +15,7 @@ namespace KitchenLib
         private NetworkStream _stream;
         private readonly IPEndPoint _endPoint;
         private readonly ILogger _logger;
+        public static int NewOrderCounter;
 
         public ClientSocket(string address, string port, ILogger logger, out bool success)
         {
@@ -85,6 +86,7 @@ namespace KitchenLib
                         KitchenDb.Orders.AddRange(JsonConvert.DeserializeObject<List<Order>>(data));
                         break;
                     case "PLACEORDER":
+                        _logger.LogNewOrder($"{NewOrderCounter += 1} new orders");
                         KitchenDb.Orders.Add(JsonConvert.DeserializeObject<Order>(data));
                         break;
                 }

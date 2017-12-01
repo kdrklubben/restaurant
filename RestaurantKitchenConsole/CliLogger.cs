@@ -27,5 +27,13 @@ namespace RestaurantKitchenConsole
         {
             Cli._connectionSucceeded = isConnected;
         }
+
+        public void LogNewOrder(string message)
+        {
+            var cursorLeft = Console.CursorLeft;
+            Console.SetCursorPosition(0, Console.CursorTop - 1);
+            Cli.PrintConsoleMessage(ConsoleColor.White, message, null);
+            Console.SetCursorPosition(cursorLeft, Console.CursorTop);
+        }
     }
 }

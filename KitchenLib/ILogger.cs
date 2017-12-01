@@ -10,5 +10,6 @@ namespace KitchenLib
         void LogWarning(string message);
 
         void CloseConnection(bool isConnected);
+        void LogNewOrder(string message);
     }
 }
