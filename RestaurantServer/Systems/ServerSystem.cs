@@ -185,7 +185,7 @@ namespace RestaurantServer.Systems
         {
             new Task(() => Listen()).Start();
             new Task(() => Timer()).Start();
-            Console.WriteLine("Server started using loopback address. Press ESC to shutdown and quit.");
+            ConsoleLogger.LogInformation("Server started using loopback address. Press ESC to shutdown and quit.");
 
             while (true)
             {
@@ -209,9 +209,9 @@ namespace RestaurantServer.Systems
         {
             foreach (var customer in CustomerConnections)
             {
-                customer.Orders.RemoveAll(x => x.OrderPlaced - DateTime.Now > TimeSpan.FromHours(1) && x.IsDone);               
+                customer.Orders.RemoveAll(x => x.OrderPlaced - DateTime.Now > TimeSpan.FromHours(1) && x.IsDone);
             }
             ConsoleLogger.LogInformation($"All done orders that were placed before {DateTime.Now.AddHours(-1)} were cleaned up.");
         }
-    }   
+    }
 }
