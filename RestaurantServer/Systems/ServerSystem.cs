@@ -107,16 +107,26 @@ namespace RestaurantServer.Systems
             ConsoleLogger.LogInformation($"New connection from { socket.RemoteEndPoint }. Waiting for authentication.");
             while (true && socket != null && socket.Connected)
             {
+                ConsoleLogger.LogInformation("Woop woop");
                 socket.SendString("LOGIN", "Please enter your desired username");
 
                 byte[] buffer = new byte[1024];
-                int byteCount = socket.Receive(buffer);
+                int byteCount = 0;
+                try
+                {
+                    byteCount = socket.Receive(buffer);
+                }
+                catch (Exception)
+                {
+                    ConsoleLogger.LogError($"Connection with { socket.RemoteEndPoint } was forcibly closed.");
+                    break;
+                }
                 if (byteCount == 0)
                     break;
 
                 string response = Encoding.UTF8.GetString(buffer, 0, byteCount);
 
-                Regex loginPattern = new Regex("(LOGIN);(p{L}+)");
+                Regex loginPattern = new Regex(@"(LOGIN);(\p{L}+)");
                 if (response == "DISCONNECT" || Regex.IsMatch("DISCONNECT;.*", response))
                 {
                     ConsoleLogger.LogWarning($"User gave up while choosing username ({ socket.RemoteEndPoint })");

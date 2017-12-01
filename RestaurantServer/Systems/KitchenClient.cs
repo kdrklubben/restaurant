@@ -23,7 +23,16 @@ namespace RestaurantServer.Systems
             while (true && Socket != null && Socket.Connected)
             {
                 byte[] buffer = new byte[1024];
-                int byteCount = Socket.Receive(buffer);
+                int byteCount = 0;
+                try
+                {
+                    byteCount = Socket.Receive(buffer);
+                }
+                catch (Exception)
+                {
+                    ConsoleLogger.LogError($"Kitchen from { Socket.RemoteEndPoint } has forcibly closed the connection.");
+                    break;
+                }
                 if (byteCount == 0)
                     break;
 
