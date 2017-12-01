@@ -14,17 +14,21 @@ namespace RestaurantCustomerConsole
         internal static List<Order> Orders { get; set; } = new List<Order>();
         public MenuService()
         {
-            Client = new SocketClient();            
+            Client = new SocketClient();
+            Client.PromptIpAddress += new PromptIpAddress(Handlers.HandlePromptIpAdress);
+            Client.ServerUnavailableError += new ServerUnavailableError(Handlers.HandleServerUnavailable);
+
             Client.Connect();
 
             // This path may seem long, but the rule is: The UI may bind to the lib, but the lib must not bind to the UI
             Client.Listener.LoginResponse += new LoginResponse(Handlers.HandleLoginResponse);
             Client.Listener.GetDishes += new GetDishes(Handlers.HandleGetDishes);
+            Client.Listener.GetOrders += new GetOrders(Handlers.HandleGetOrders);
             Client.Listener.AuthConfirmed += new AuthConfirmed(Handlers.HandleAuthConfirmed);
             Client.Listener.AuthDenied += new AuthDenied(Handlers.HandleAuthDenied);
-            Client.Listener.OrderDone += new OrderDone(Handlers.HandleOrderDone);
-            Client.ServerUnavailableError += new ServerUnavailableError(Handlers.HandleServerUnavailable);
-            Client.PromptIpAddress += new PromptIpAddress(Handlers.HandlePromptIpAdress);
+            Client.Listener.OrderDone += new OrderDone(Handlers.HandleOrderDone);            
+            Client.OrderPlaced += new OrderPlaced(Handlers.HandleOrderPlaced);
+
             MainLoop();
         }
 
@@ -40,6 +44,7 @@ namespace RestaurantCustomerConsole
                     Client.Disconnect();
                     break;
                 }
+                if (command == "kitchen") DisplayOrders();
                 if (command == "help") DisplayHelp();
                 if (command.StartsWith("order")) {
                     string item = command.Substring(command.IndexOf(' '));
@@ -51,6 +56,7 @@ namespace RestaurantCustomerConsole
         void DisplayHelp()
         {
             Console.WriteLine("Type 'menu' to view all menu options");
+            Console.WriteLine("Type 'kitchen' to view all orders in the kitchen");
             Console.WriteLine("Type 'order [x]' to place an order. 'x' can be the dish's number or name");
             Console.WriteLine("Type 'exit' to close the application");
             Console.WriteLine("Type 'help' to see this list again");
@@ -63,7 +69,13 @@ namespace RestaurantCustomerConsole
                 Console.WriteLine($"{item.DishId}\t{item.Name}\t{item.Price} SEK\n\t{item.Description}");
             }
         }
-
+        void DisplayOrders()
+        {
+            foreach (Order item in Orders)
+            {
+                Console.WriteLine($"{item.Dish.DishId}\t{item.Dish.Name}\t{item.Dish.Price} SEK\n\t{item.Dish.Description}");
+            }
+        }
         internal static void ClaimName()
         {
             string name;

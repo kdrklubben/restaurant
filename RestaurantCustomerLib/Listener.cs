@@ -17,6 +17,7 @@ namespace RestaurantCustomerLib
         public event AuthDenied AuthDenied;
         public event OrderDone OrderDone;
         public event GetDishes GetDishes;
+        public event GetOrders GetOrders;
         public Listener(NetworkStream stream)
         {
             networkstream = stream;
@@ -38,8 +39,12 @@ namespace RestaurantCustomerLib
                         LoginResponse.Invoke(data[1]);
                         break;
                     case "GETDISHES":
-                        List<Dish> list = JsonConvert.DeserializeObject<List<Dish>>(data[1]);
-                        GetDishes.Invoke(list);
+                        List<Dish> dishes = JsonConvert.DeserializeObject<List<Dish>>(data[1]);
+                        GetDishes.Invoke(dishes);
+                        break;
+                    case "GETORDERS":
+                        List<Order> orders = JsonConvert.DeserializeObject<List<Order>>(data[1]);
+                        GetOrders.Invoke(orders);
                         break;
                     case "AUTHCONFIRMED":
                         AuthConfirmed.Invoke(data[1]);

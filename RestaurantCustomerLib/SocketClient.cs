@@ -15,6 +15,7 @@ namespace RestaurantCustomerLib
         private Sender sender;
         public event ServerUnavailableError ServerUnavailableError;
         public event PromptIpAddress PromptIpAddress;
+        public event OrderPlaced OrderPlaced;
         IPEndPoint RemoteEndPoint()
         {
             // In a real production environment, the server EndPoint would be known, so this is available for development purposes
@@ -57,7 +58,13 @@ namespace RestaurantCustomerLib
         }
         public void Disconnect() => sender.Command("DISCONNECT;");
         public void GetDishes() => sender.Command("GETDISHES;");
-        public void Order(int id) => sender.Command($"PLACEORDER;{JsonConvert.SerializeObject(id)}");
+        public void Order(int id)
+        {
+            sender.Command($"PLACEORDER;{JsonConvert.SerializeObject(id)}");
+            OrderPlaced.Invoke(id);
+            sender.Command("GETORDERS;");
+        }
+
         public void Login(string name) => sender.Command($"LOGIN;{name}");
     }
 }

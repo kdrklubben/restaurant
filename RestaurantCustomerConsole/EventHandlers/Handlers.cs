@@ -33,6 +33,11 @@ namespace RestaurantCustomerConsole.EventHandlers
             MenuService.ClaimName();
         }
 
+        internal static void HandleGetOrders(List<Order> orders)
+        {
+            MenuService.Orders = orders;
+        }
+
         internal static void HandleGetDishes(List<Dish> data)
         {
             MenuService.Menu = data;
@@ -40,13 +45,33 @@ namespace RestaurantCustomerConsole.EventHandlers
 
         internal static void HandleOrderDone(string message)
         {
-            Console.WriteLine(message);
+            int id = int.Parse(message);
+            Dish dish = MenuService.Orders.Find(x => x.OrderId == id).Dish;
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write("Your ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write(dish.Name);
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write(" order has been completed");
+            Console.ResetColor();
         }
 
         internal static string HandlePromptIpAdress()
         {
             Console.WriteLine("Provide IP adress (defaults to 127.0.0.1)");
             return Console.ReadLine();
+        }
+
+        internal static void HandleOrderPlaced(int dishId)
+        {
+            Dish dish = MenuService.Menu.Find(x => x.DishId == dishId);
+
+            Console.Write("Your ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write(dish.Name);
+            Console.ResetColor();
+            Console.Write(" order has been sent to the kitchen");            
         }
     }
 }
