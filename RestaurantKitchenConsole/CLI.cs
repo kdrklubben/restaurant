@@ -40,6 +40,9 @@ namespace RestaurantKitchenConsole
                     break;
                 case "clear": Console.Clear();
                     break;
+                case "exit":
+                case "x": Disconnect();
+                    break;
                 default: Menu();
                     break;
             }
@@ -47,15 +50,16 @@ namespace RestaurantKitchenConsole
 
         private static void Connect()
         {
-            Console.WriteLine("Kitchen application connecting to server...");
+            PrintConsoleMessage(ConsoleColor.Cyan, "Kitchen application connecting to server...", null);
             _client = new ClientSocket("172.20.201.39", "8080", Logger, out _connectionSucceeded);
             //_client = new ClientSocket("127.0.0.1", "8080", _logger, out _connectionSucceeded);
-            Console.WriteLine(_connectionSucceeded
-                ? "Application is now connected to server."
-                : "Something went wrong try again later.");
+            if (_connectionSucceeded)
+                PrintConsoleMessage(ConsoleColor.Green, "Application is now connected to server.", null);
+            else
+                PrintConsoleMessage(ConsoleColor.Green, "Something went wrong try again later.", null);
         }
 
-        public static void ShowOrders()
+        private static void ShowOrders()
         {
             if (_connectionSucceeded && KitchenDb.GetOrders().Count > 0)
                 KitchenDb.GetOrders().ForEach(o => Console.WriteLine($"Orderid: {o.OrderId} --- Dish ordered: {o.Dish.Name}"));
@@ -74,7 +78,7 @@ namespace RestaurantKitchenConsole
                     if (order != null)
                     {
                         KitchenDb.GetOrders().Remove(order);
-                        _client.ClientSend("ORDERDONE;" + JsonConvert.SerializeObject(order.OrderId));
+                        _client.MarkOrderDone(order.OrderId);
                         Console.WriteLine($"Order {orderId} has now been completed");
                     }
                     else
@@ -89,6 +93,11 @@ namespace RestaurantKitchenConsole
                 Console.WriteLine("Must be connected to server.");
         }
 
+        private static void Disconnect()
+        {
+            _client.DisconnectFromServer();
+            PrintConsoleMessage(ConsoleColor.Green, "You successfully disconnected from server", null);
+        }
 
         private static void Menu()
         {
@@ -98,8 +107,18 @@ namespace RestaurantKitchenConsole
             {
                 Console.WriteLine("2. Show orders");
                 Console.WriteLine("3. Mark order done");
+                Console.WriteLine("Type exit to disconnect from server.");
             }
             Console.WriteLine("Type menu to view again.");
+        }
+
+        internal static void PrintConsoleMessage(ConsoleColor foreColor, string message, ConsoleColor? backColor)
+        {
+            Console.ForegroundColor = foreColor;
+            if (backColor != null)
+                Console.BackgroundColor = (ConsoleColor) backColor;
+            Console.WriteLine(message);
+            Console.ResetColor();
         }
     }
 }

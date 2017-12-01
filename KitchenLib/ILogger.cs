@@ -7,6 +7,6 @@ namespace KitchenLib
     public interface ILogger
     {
         void LogInformation(string message);
-        void LogWarning();
+        void LogWarning(string message);
     }
 }

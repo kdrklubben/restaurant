@@ -54,7 +54,20 @@ namespace KitchenLib
             while (true)
             {
                 var data = new byte[1024];
-                int recv = _stream.Read(data, 0, data.Length);
+                var recv = 0;
+
+                try
+                {
+                    recv = _stream.Read(data, 0, data.Length);
+                }
+                catch (Exception)
+                {
+                    _logger.LogWarning("Something went wrong with the server connection");
+                    break;
+                }
+
+                if (recv == 0) break;
+
                 var receivedData = Encoding.ASCII.GetString(data, 0, recv).Split(";");
                 ParseCommand(receivedData[0], receivedData[1]);
             }
@@ -90,6 +103,16 @@ namespace KitchenLib
                         break;
                 }
             }
+        }
+
+        public void MarkOrderDone(int orderId)
+        {
+            ClientSend($"ORDERDONE;{orderId}");
+        }
+
+        public void DisconnectFromServer()
+        {
+            ClientSend("DISCONNECT;");
         }
 
         private bool ValidateJson(string json)
