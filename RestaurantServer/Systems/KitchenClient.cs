@@ -61,6 +61,7 @@ namespace RestaurantServer.Systems
                     else if (response == "DISCONNECT" || Regex.IsMatch("DISCONNECT;.*", response))
                     {
                         ConsoleLogger.LogInformation($"Kitchen from { Socket.RemoteEndPoint } has disconnected");
+                        SocketUtility.CloseConnection(Socket);
                         break;
                     }
                     else

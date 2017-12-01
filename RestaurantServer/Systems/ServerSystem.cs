@@ -32,7 +32,6 @@ namespace RestaurantServer.Systems
             _socket = SocketUtility.CreateServerSocket();
             Dishes = SerializationUtility.ReadDishes();
             CustomerConnections = new List<Customer>();
-            OrderIdCounter = 1;
             PrintSplash();
         }
 
@@ -65,8 +64,9 @@ namespace RestaurantServer.Systems
                 if (orderCustomer.Socket.Connected)
                 {
                     orderCustomer.Socket.SendString("ORDERDONE", JsonConvert.SerializeObject(orderId));
+                    orderCustomer.Orders.Remove(order);
                 }
-                orderCustomer.Orders.Remove(order);
+                ConsoleLogger.LogInformation($"{ orderCustomer.Username }'s order with ID { orderId } for { order.Dish.Name } has been marked as done.");
             }
         }
 
