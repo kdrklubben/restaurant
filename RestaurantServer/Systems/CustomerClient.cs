@@ -38,7 +38,7 @@ namespace RestaurantServer.Systems
                     if (placeOrderPattern.IsMatch(response))
                     {
                         Match match = placeOrderPattern.Match(response);
-                        ServerSystem.Instance.PlaceOrder(JsonConvert.DeserializeObject<int>(match.Groups[1].Value), _client);
+                        ServerSystem.Instance.PlaceOrder(JsonConvert.DeserializeObject<int>(match.Groups[2].Value), _client);
                     }
                     else if (getDishesPattern.IsMatch(response))
                     {

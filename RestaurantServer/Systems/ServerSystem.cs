@@ -125,7 +125,7 @@ namespace RestaurantServer.Systems
                 }
                 else if (loginPattern.IsMatch(response))
                 {
-                    string username = loginPattern.Match(response).Groups[1].Value;
+                    string username = loginPattern.Match(response).Groups[2].Value;
                     if (username == "kitchen")
                     {
                         if (Kitchen == null || !Kitchen.Connected)

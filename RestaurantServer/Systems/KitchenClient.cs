@@ -38,7 +38,7 @@ namespace RestaurantServer.Systems
                     if (dishReadyPattern.IsMatch(response))
                     {
                         Match match = dishReadyPattern.Match(response);
-                        int orderId = JsonConvert.DeserializeObject<int>(match.Groups[1].Value);
+                        int orderId = JsonConvert.DeserializeObject<int>(match.Groups[2].Value);
                         ServerSystem.Instance.ConfirmOrder(orderId);
                     }
                     else if (getDishesPattern.IsMatch(response))
