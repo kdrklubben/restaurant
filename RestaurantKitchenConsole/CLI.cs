@@ -82,7 +82,7 @@ namespace RestaurantKitchenConsole
                         Console.WriteLine($"Order {orderId} has now been completed");
                     }
                     else
-                        Console.WriteLine("No order found by that id.");
+                        PrintConsoleMessage(ConsoleColor.White, "Must be connected to server.", null);
                 }
                 catch (Exception e)
                 {
@@ -90,7 +90,7 @@ namespace RestaurantKitchenConsole
                     throw;
                 }
             else
-                Console.WriteLine("Must be connected to server.");
+                PrintConsoleMessage(ConsoleColor.Red, "Must be connected to server.", null);
         }
 
         private static void Disconnect()

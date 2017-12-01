@@ -11,7 +11,7 @@ namespace RestaurantKitchenConsole
         {
             var cursorLeft = Console.CursorLeft;
             Console.SetCursorPosition(0, Console.CursorTop - 2);
-            Cli.PrintConsoleMessage(ConsoleColor.Gray, message, null);
+            Cli.PrintConsoleMessage(ConsoleColor.White, message, null);
             Console.SetCursorPosition(cursorLeft, Console.CursorTop + 1);
         }
 
