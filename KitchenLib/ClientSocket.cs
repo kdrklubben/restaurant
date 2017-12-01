@@ -45,7 +45,7 @@ namespace KitchenLib
 
         public void ClientSend(string data)
         {
-            var bytesToSend = Encoding.ASCII.GetBytes(data);
+            var bytesToSend = Encoding.UTF8.GetBytes(data);
             _stream.Write(bytesToSend, 0, bytesToSend.Length);
         }
 
@@ -62,13 +62,15 @@ namespace KitchenLib
                 }
                 catch (Exception)
                 {
+                    KitchenDb.Orders.Clear();
+                    _logger.CloseConnection(false);
                     _logger.LogWarning("Something went wrong with the server connection");
                     break;
                 }
 
                 if (recv == 0) break;
 
-                var receivedData = Encoding.ASCII.GetString(data, 0, recv).Split(";");
+                var receivedData = Encoding.UTF8.GetString(data, 0, recv).Split(";");
                 ParseCommand(receivedData[0], receivedData[1]);
             }
         }
@@ -112,6 +114,7 @@ namespace KitchenLib
 
         public void DisconnectFromServer()
         {
+            KitchenDb.Orders.Clear();
             ClientSend("DISCONNECT;");
         }
 

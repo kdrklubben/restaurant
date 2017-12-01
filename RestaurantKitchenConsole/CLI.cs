@@ -9,7 +9,7 @@ namespace RestaurantKitchenConsole
 {
     public class Cli
     {
-        private static bool _connectionSucceeded;
+        public static bool _connectionSucceeded;
         private static ClientSocket _client;
         private static readonly CliLogger Logger = new CliLogger();
         public Cli()
@@ -62,7 +62,7 @@ namespace RestaurantKitchenConsole
         private static void ShowOrders()
         {
             if (_connectionSucceeded && KitchenDb.GetOrders().Count > 0)
-                KitchenDb.GetOrders().ForEach(o => Console.WriteLine($"Orderid: {o.OrderId} --- Dish ordered: {o.Dish.Name}"));
+            KitchenDb.GetOrders().ForEach(o => PrintConsoleMessage(ConsoleColor.Black, $"Orderid: {o.OrderId} --- Dish ordered: {o.Dish.Name}", ConsoleColor.White));
             else
                 Console.WriteLine(_connectionSucceeded ? "There are currently no unfinnished orders." : "Must be connected to server.");
         }
@@ -72,6 +72,7 @@ namespace RestaurantKitchenConsole
             if (_connectionSucceeded)
                 try
                 {
+                    
                     Console.Write("Enter order-id to mark order as finnished: ");
                     var orderId = Console.ReadLine();
                     var order = KitchenDb.GetOrders().SingleOrDefault(o => o.OrderId == int.Parse(orderId));
@@ -79,7 +80,7 @@ namespace RestaurantKitchenConsole
                     {
                         KitchenDb.GetOrders().Remove(order);
                         _client.MarkOrderDone(order.OrderId);
-                        Console.WriteLine($"Order {orderId} has now been completed");
+                        PrintConsoleMessage(ConsoleColor.Green, $"Order {orderId} has now been completed", null);
                     }
                     else
                         PrintConsoleMessage(ConsoleColor.White, "Must be connected to server.", null);
@@ -96,6 +97,7 @@ namespace RestaurantKitchenConsole
         private static void Disconnect()
         {
             _client.DisconnectFromServer();
+            _connectionSucceeded = false;
             PrintConsoleMessage(ConsoleColor.Green, "You successfully disconnected from server", null);
         }
 

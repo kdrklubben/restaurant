@@ -22,5 +22,10 @@ namespace RestaurantKitchenConsole
             Cli.PrintConsoleMessage(ConsoleColor.Red, message, null);
             Console.SetCursorPosition(cursorLeft, Console.CursorTop + 1);
         }
+
+        public void CloseConnection(bool isConnected)
+        {
+            Cli._connectionSucceeded = isConnected;
+        }
     }
 }

@@ -8,5 +8,7 @@ namespace KitchenLib
     {
         void LogInformation(string message);
         void LogWarning(string message);
+
+        void CloseConnection(bool isConnected);
     }
 }
