@@ -1,12 +1,12 @@
 ﻿using Newtonsoft.Json;
 using RestaurantLib;
-using RestaurantLib.Extensions;
 using RestaurantServer.Extensions;
 using RestaurantServer.Models;
 using RestaurantServer.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -110,13 +110,22 @@ namespace RestaurantServer.Systems
                 socket.SendString("LOGIN", "Please enter your desired username");
 
                 byte[] buffer = new byte[1024];
-                int byteCount = socket.Receive(buffer);
+                int byteCount = 0;
+                try
+                {
+                    byteCount = socket.Receive(buffer);
+                }
+                catch (Exception)
+                {
+                    ConsoleLogger.LogError($"Connection with { socket.RemoteEndPoint } was forcibly closed.");
+                    break;
+                }
                 if (byteCount == 0)
                     break;
 
                 string response = Encoding.UTF8.GetString(buffer, 0, byteCount);
 
-                Regex loginPattern = new Regex("(LOGIN);(p{L}+)");
+                Regex loginPattern = new Regex(@"(LOGIN);(\p{L}+)");
                 if (response == "DISCONNECT" || Regex.IsMatch("DISCONNECT;.*", response))
                 {
                     ConsoleLogger.LogWarning($"User gave up while choosing username ({ socket.RemoteEndPoint })");
@@ -185,7 +194,7 @@ namespace RestaurantServer.Systems
         {
             new Task(() => Listen()).Start();
             new Task(() => Timer()).Start();
-            ConsoleLogger.LogInformation("Server started using loopback address. Press ESC to shutdown and quit.");
+            ConsoleLogger.LogInformation($"Server started on { ((IPEndPoint)_socket.LocalEndPoint).Address }:{ ((IPEndPoint)_socket.LocalEndPoint).Port }. Press ESC to shutdown and quit.");
 
             while (true)
             {
@@ -200,18 +209,18 @@ namespace RestaurantServer.Systems
             Environment.Exit(0);
         }
 
-        internal void Timer()
+        private void Timer()
         {
-            new Timer(RemoveOldOrders, new AutoResetEvent(false), 60000, 60000);
+            new Timer(RemoveOldOrders, new AutoResetEvent(false), 300000, 300000);
         }
 
-        internal void RemoveOldOrders(Object stateinfo)
+        private void RemoveOldOrders(Object stateinfo)
         {
             foreach (var customer in CustomerConnections)
             {
-                customer.Orders.RemoveAll(x => x.OrderPlaced - DateTime.Now > TimeSpan.FromHours(1) && x.IsDone);
+                customer.Orders.RemoveAll(x => x.IsDone && (x.OrderPlaced - DateTime.Now > TimeSpan.FromHours(1)));
             }
-            ConsoleLogger.LogInformation($"All done orders that were placed before {DateTime.Now.AddHours(-1)} were cleaned up.");
+            ConsoleLogger.LogInformation($"All unclaimed, finished orders that were placed before { DateTime.Now.AddHours(-1) } have been removed.");
         }
     }
 }
