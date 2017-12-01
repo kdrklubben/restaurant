@@ -33,6 +33,7 @@ namespace RestaurantServer.Systems
             Dishes = SerializationUtility.ReadDishes();
             CustomerConnections = new List<Customer>();
             OrderIdCounter = 1;
+            PrintSplash();
         }
 
         internal static ServerSystem Instance
@@ -221,6 +222,18 @@ namespace RestaurantServer.Systems
                 customer.Orders.RemoveAll(x => x.IsDone && (x.OrderPlaced - DateTime.Now > TimeSpan.FromHours(1)));
             }
             ConsoleLogger.LogInformation($"All unclaimed, finished orders that were placed before { DateTime.Now.AddHours(-1).ToUniversalTime() } have been removed.");
+        }
+
+        private void PrintSplash()
+        {
+            Console.WriteLine(@"   ___          __  ___       ___           __ ");
+            Console.WriteLine(@"  / _ \___ ___ / /_/ _ |__ __/ _ \___ ___  / /_");
+            Console.WriteLine(@" / , _/ -_|_-</ __/ __ / // / , _/ -_) _ \/ __/");
+            Console.WriteLine(@"/_/|_|\__/___/\__/_/ |_\_,_/_/|_|\__/_//_/\__/ ");
+            Console.WriteLine(@"  / __/__ _____  _____ ____  _  _<  // _ \     ");
+            Console.WriteLine(@" _\ \/ -_) __/ |/ / -_) __/ | |/ / // // /     ");
+            Console.WriteLine(@"/___/\__/_/  |___/\__/_/    |___/_(_)___/      ");
+            Console.WriteLine("\n\n");
         }
     }
 }
