@@ -107,7 +107,6 @@ namespace RestaurantServer.Systems
             ConsoleLogger.LogInformation($"New connection from { socket.RemoteEndPoint }. Waiting for authentication.");
             while (true && socket != null && socket.Connected)
             {
-                ConsoleLogger.LogInformation("Woop woop");
                 socket.SendString("LOGIN", "Please enter your desired username");
 
                 byte[] buffer = new byte[1024];
