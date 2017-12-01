@@ -11,6 +11,7 @@ namespace RestaurantKitchenConsole
     {
         private static bool _connectionSucceeded;
         private static ClientSocket _client;
+        private static readonly CliLogger Logger = new CliLogger();
         public Cli()
         {
             Menu();
@@ -47,7 +48,8 @@ namespace RestaurantKitchenConsole
         private static void Connect()
         {
             Console.WriteLine("Kitchen application connecting to server...");
-            _client = new ClientSocket("127.0.0.1", "8080", out _connectionSucceeded);
+            _client = new ClientSocket("172.20.201.39", "8080", Logger, out _connectionSucceeded);
+            //_client = new ClientSocket("127.0.0.1", "8080", _logger, out _connectionSucceeded);
             Console.WriteLine(_connectionSucceeded
                 ? "Application is now connected to server."
                 : "Something went wrong try again later.");

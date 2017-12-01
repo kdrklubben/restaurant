@@ -14,9 +14,11 @@ namespace KitchenLib
         private readonly TcpClient _client = new TcpClient();
         private NetworkStream _stream;
         private readonly IPEndPoint _endPoint;
+        private readonly ILogger _logger;
 
-        public ClientSocket(string address, string port, out bool success)
+        public ClientSocket(string address, string port, ILogger logger, out bool success)
         {
+            _logger = logger;
             _endPoint = RemoteEndPoint(address, port);
             success = Connect();
         }
@@ -58,38 +60,38 @@ namespace KitchenLib
             }
         }
 
-        private void ParseCommand(string cmd, string json)
+        private void ParseCommand(string cmd, string data)
         {
-            if (!ValidateJson(json)) return;
-
-            switch (cmd)
+            if (ValidateJson(data))
             {
-                case "GETORDERS":
-                    KitchenDb.Orders.AddRange(JsonConvert.DeserializeObject<List<Order>>(json));
-                    break;
-                case "PLACEORDER": KitchenDb.Orders.Add(JsonConvert.DeserializeObject<Order>(json));
-                    break;
-                case "AUTHCONFIRMED":
-                    ShowInfoMessage(JsonConvert.DeserializeObject<string>(json));
-                    ClientSend("GETORDERS;{}");
-                    break;
-                case "AUTHDENIED":
-                    ShowInfoMessage(JsonConvert.DeserializeObject<string>(json));
-                    break;
-                case "LOGIN":
-                    ClientSend("LOGIN;" + "kitchen");
-                    break;
+                switch (cmd)
+                {
+                    case "GETORDERS":
+                        KitchenDb.Orders.AddRange(JsonConvert.DeserializeObject<List<Order>>(data));
+                        break;
+                    case "PLACEORDER":
+                        KitchenDb.Orders.Add(JsonConvert.DeserializeObject<Order>(data));
+                        break;
+                }
+            }
+            else
+            {
+                switch (cmd)
+                {
+                    case "AUTHCONFIRMED":
+                        _logger.LogInformation(data);
+                        ClientSend("GETORDERS;{}");
+                        break;
+                    case "AUTHDENIED":
+                        _logger.LogInformation(data);
+                        break;
+                    case "LOGIN":
+                        ClientSend("LOGIN;" + "kitchen");
+                        break;
+                }
             }
         }
 
-        private void ShowInfoMessage(string message)
-        {
-            var cursorLeft = Console.CursorLeft;
-            Console.SetCursorPosition(0, Console.CursorTop - 2);
-            Console.WriteLine(message);
-            Console.SetCursorPosition(cursorLeft, Console.CursorTop + 1);
-        }
-        
         private bool ValidateJson(string json)
         {
             try
