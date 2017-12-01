@@ -116,7 +116,7 @@ namespace RestaurantServer.Systems
 
                 string response = Encoding.UTF8.GetString(buffer, 0, byteCount);
 
-                Regex loginPattern = new Regex("(LOGIN);p{L}+");
+                Regex loginPattern = new Regex("(LOGIN);(p{L}+)");
                 if (response == "DISCONNECT" || Regex.IsMatch("DISCONNECT;.*", response))
                 {
                     ConsoleLogger.LogWarning($"User gave up while choosing username ({ socket.RemoteEndPoint })");
@@ -125,7 +125,7 @@ namespace RestaurantServer.Systems
                 }
                 else if (loginPattern.IsMatch(response))
                 {
-                    string username = loginPattern.Match(response).Groups[1].Value;
+                    string username = loginPattern.Match(response).Groups[2].Value;
                     if (username == "kitchen")
                     {
                         if (Kitchen == null || !Kitchen.Socket.Connected)
