@@ -185,7 +185,7 @@ namespace RestaurantServer.Systems
         {
             new Task(() => Listen()).Start();
             new Task(() => Timer()).Start();
-            Console.WriteLine("Server started using loopback address. Press ESC to shutdown and quit.");
+            ConsoleLogger.LogInformation("Server started using loopback address. Press ESC to shutdown and quit.");
 
             while (true)
             {
