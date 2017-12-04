@@ -63,8 +63,8 @@ namespace RestaurantServer.Systems
                     else if(setAvailablePattern.IsMatch(response))
                     {
                         Match match = setAvailablePattern.Match(response);
-                        DishToggleModel toggleModel = JsonConvert.DeserializeObject<DishToggleModel>(match.Groups[2].Value);
-                        ServerSystem.Instance.SetDishAvailable(toggleModel.DishId, toggleModel.IsAvailable);
+                        DishAvailableModel dishAvailable = JsonConvert.DeserializeObject<DishAvailableModel>(match.Groups[2].Value);
+                        ServerSystem.Instance.SetDishAvailable(dishAvailable.DishId, dishAvailable.IsAvailable);
                     }
                     else if (response == "DISCONNECT" || Regex.IsMatch("DISCONNECT;.*", response))
                     {

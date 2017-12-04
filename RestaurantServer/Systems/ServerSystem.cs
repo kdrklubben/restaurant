@@ -93,7 +93,15 @@ namespace RestaurantServer.Systems
 
         internal void SetDishAvailable(int dishId, bool isAvailable)
         {
-            throw new NotImplementedException();
+            Dish dish = Dishes.SingleOrDefault(x => x.DishId == dishId);
+            if (dish != null)
+                dish.IsAvailable = isAvailable;
+
+            DishAvailableModel dishAvailable = new DishAvailableModel() { DishId = dishId, IsAvailable = isAvailable };
+            List<Socket> sockets = new List<Socket>();
+            CustomerConnections.ForEach(x => sockets.Add(x.Socket));
+
+            SocketUtility.SendStringToAll(sockets, "SETAVAILABLE", JsonConvert.SerializeObject(dishAvailable));
         }
 
         private void Listen()
