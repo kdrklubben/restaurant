@@ -61,8 +61,17 @@ namespace RestaurantServer.Systems
                     else if (response == "DISCONNECT" || Regex.IsMatch("DISCONNECT;.*", response))
                     {
                         ConsoleLogger.LogInformation($"Kitchen from { Socket.RemoteEndPoint } has disconnected");
+                        SocketUtility.CloseConnection(Socket);
                         break;
                     }
+                    else
+                    {
+                        ConsoleLogger.LogError($"Invalid format received when listening to kitchen on { Socket.RemoteEndPoint }\n\t{ response }");
+                    }
+                }
+                else
+                {
+                    ConsoleLogger.LogError($"Invalid format received when listening to kitchen on { Socket.RemoteEndPoint }");
                 }
             }
 
