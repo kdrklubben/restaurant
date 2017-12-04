@@ -2,6 +2,8 @@
 using RestaurantServer.Systems;
 using System.Net.Sockets;
 using System.Net;
+using System.Collections.Generic;
+using RestaurantServer.Extensions;
 
 namespace RestaurantServer.Utilities
 {
@@ -36,6 +38,15 @@ namespace RestaurantServer.Utilities
             finally
             {
                 socket.Close();
+            }
+        }
+
+        internal static void SendStringToAll(ICollection<Socket> sockets, string command, string message)
+        {
+            foreach (Socket socket in sockets)
+            {
+                if (socket.Connected)
+                    socket.SendString(command, message);
             }
         }
 

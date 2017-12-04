@@ -51,7 +51,7 @@ namespace RestaurantServer.Systems
                         Match match = placeOrderPattern.Match(response);
                         int dishId = JsonConvert.DeserializeObject<int>(match.Groups[2].Value);
                         Dish dish = ServerSystem.Instance.Dishes.SingleOrDefault(x => x.DishId == dishId);
-                        if (dish != null)
+                        if (dish != null && dish.IsAvailable)
                         {
                             ServerSystem.Instance.PlaceOrder(dish, _client);
                             ConsoleLogger.LogInformation($"User { _client.Username } has placed a new order for { dish.Name }");
