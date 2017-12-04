@@ -10,6 +10,7 @@ namespace KitchenLib
         // Waiting for other feature branches to merge before Order can be used properly
         public static List<Order> Orders = new List<Order>();
         public static List<Dish> Dishes = new List<Dish>();
+        public static Dictionary<bool, string> StatusDict = new Dictionary<bool, string> { { true, "available" }, { false, "unavailable" } };
 
         public static List<Order> GetOrders()
         {
@@ -17,7 +18,7 @@ namespace KitchenLib
         }
         public static List<Dish> GetDishes()
         {
-            return Dishes
+            return Dishes;
         }
     }
 }
