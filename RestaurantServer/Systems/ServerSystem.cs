@@ -42,7 +42,7 @@ namespace RestaurantServer.Systems
 
         internal void PlaceOrder(Dish dish, Customer customer)
         {
-            if (dish != null)
+            if (dish != null && dish.IsAvailable)
             {
                 OrderIdCounter++;
                 Order order = new Order() { OrderId = OrderIdCounter, Dish = dish, IsDone = false };
@@ -50,7 +50,7 @@ namespace RestaurantServer.Systems
                 if (Kitchen != null && Kitchen.Socket.Connected)
                 {
                     Kitchen.Socket.SendString("PLACEORDER", JsonConvert.SerializeObject(order));
-                }
+                }                
             }
         }
 
@@ -89,6 +89,29 @@ namespace RestaurantServer.Systems
         internal void SendCustomerOrders(Customer customer)
         {
             customer.Socket.SendString("GETORDERS", JsonConvert.SerializeObject(customer.Orders));
+        }
+
+        internal void SetDishAvailable(int dishId, bool isAvailable)
+        {
+            Dish dish = Dishes.SingleOrDefault(x => x.DishId == dishId);
+            if (dish != null)
+            {
+                dish.IsAvailable = isAvailable;
+                if (isAvailable)
+                    ConsoleLogger.LogInformation($"{ dish.Name } has been set to available");
+                else
+                    ConsoleLogger.LogInformation($"{ dish.Name } has been set to unavailable");
+
+                DishAvailableModel dishAvailable = new DishAvailableModel() { DishId = dishId, IsAvailable = isAvailable };
+                List<Socket> sockets = new List<Socket>();
+                CustomerConnections.ForEach(x => sockets.Add(x.Socket));
+
+                SocketUtility.SendStringToAll(sockets, "SETAVAILABLE", JsonConvert.SerializeObject(dishAvailable));
+            }
+            else
+            {
+                ConsoleLogger.LogError($"Invalid dish ID ({ dishId }) from kitchen when setting availability");
+            }
         }
 
         private void Listen()
