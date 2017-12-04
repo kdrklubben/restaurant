@@ -68,9 +68,9 @@ namespace RestaurantCustomerConsole
             string price = "";
             foreach (Dish item in Menu)
             {
-                price = item.IsAvailable ? item.Price.ToString() : "Out of Stock";
+                price = item.IsAvailable ? item.Price.ToString()+" SEK" : "Out of Stock";
                 Console.ForegroundColor = item.IsAvailable ? ConsoleColor.White : ConsoleColor.Gray;
-                Console.WriteLine($"{item.DishId}\t{item.Name}\t{price} SEK\n\t{item.Description}");
+                Console.WriteLine($"{item.DishId}\t{item.Name}\t{price}\n\t{item.Description}");
                 Console.ResetColor();
             }
         }
