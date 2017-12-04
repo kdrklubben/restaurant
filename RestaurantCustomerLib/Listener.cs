@@ -57,8 +57,8 @@ namespace RestaurantCustomerLib
                         OrderDone.Invoke(data[1]);
                         break;
                     case "SETAVAILABLE":
-                        List<DishAvailableModel> availables = JsonConvert.DeserializeObject<List<DishAvailableModel>>(data[1]);
-                        SetAvailable.Invoke(availables);
+                        DishAvailableModel available = JsonConvert.DeserializeObject<DishAvailableModel>(data[1]);
+                        SetAvailable.Invoke(available);
                         break;
                     default:
                         break;

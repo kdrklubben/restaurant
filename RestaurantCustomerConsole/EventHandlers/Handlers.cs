@@ -33,15 +33,9 @@ namespace RestaurantCustomerConsole.EventHandlers
             MenuService.ClaimName();
         }
 
-        internal static void HandleGetOrders(List<Order> orders)
-        {
-            MenuService.Orders = orders;
-        }
+        internal static void HandleGetOrders(List<Order> orders) => MenuService.Orders = orders;
 
-        internal static void HandleGetDishes(List<Dish> data)
-        {
-            MenuService.Menu = data;
-        }
+        internal static void HandleGetDishes(List<Dish> data) => MenuService.Menu = data;
 
         internal static void HandleOrderDone(string message)
         {
@@ -73,12 +67,7 @@ namespace RestaurantCustomerConsole.EventHandlers
             Console.ResetColor();
             Console.Write(" order has been sent to the kitchen");            
         }
-        internal static void HandleSetAvailable(List<DishAvailableModel> list)
-        {
-            foreach (var item in list)
-            {
-                MenuService.Menu.Find(x => x.DishId == item.DishId).IsAvailable = item.IsAvailable;
-            }
-        }
+        internal static void HandleSetAvailable(DishAvailableModel model)
+            => MenuService.Menu.Find(x => x.DishId == model.DishId).IsAvailable = model.IsAvailable;
     }
 }
