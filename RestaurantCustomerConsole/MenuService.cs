@@ -28,6 +28,7 @@ namespace RestaurantCustomerConsole
             Client.Listener.AuthDenied += new AuthDenied(Handlers.HandleAuthDenied);
             Client.Listener.OrderDone += new OrderDone(Handlers.HandleOrderDone);            
             Client.OrderPlaced += new OrderPlaced(Handlers.HandleOrderPlaced);
+            Client.Listener.SetAvailable += new SetAvailable(Handlers.HandleSetAvailable);
 
             MainLoop();
         }
@@ -64,9 +65,13 @@ namespace RestaurantCustomerConsole
 
         void DisplayMenu()
         {
+            string price = "";
             foreach (Dish item in Menu)
             {
-                Console.WriteLine($"{item.DishId}\t{item.Name}\t{item.Price} SEK\n\t{item.Description}");
+                price = item.IsAvailable ? item.Price.ToString() : "Out of Stock";
+                Console.ForegroundColor = item.IsAvailable ? ConsoleColor.White : ConsoleColor.Gray;
+                Console.WriteLine($"{item.DishId}\t{item.Name}\t{price} SEK\n\t{item.Description}");
+                Console.ResetColor();
             }
         }
         void DisplayOrders()

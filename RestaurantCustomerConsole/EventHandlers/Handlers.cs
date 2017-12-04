@@ -73,5 +73,12 @@ namespace RestaurantCustomerConsole.EventHandlers
             Console.ResetColor();
             Console.Write(" order has been sent to the kitchen");            
         }
+        internal static void HandleSetAvailable(List<DishAvailableModel> list)
+        {
+            foreach (var item in list)
+            {
+                MenuService.Menu.Find(x => x.DishId == item.DishId).IsAvailable = item.IsAvailable;
+            }
+        }
     }
 }

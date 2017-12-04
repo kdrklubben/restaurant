@@ -18,6 +18,7 @@ namespace RestaurantCustomerLib
         public event OrderDone OrderDone;
         public event GetDishes GetDishes;
         public event GetOrders GetOrders;
+        public event SetAvailable SetAvailable;
         public Listener(NetworkStream stream)
         {
             networkstream = stream;
@@ -54,6 +55,10 @@ namespace RestaurantCustomerLib
                         break;
                     case "ORDERDONE":
                         OrderDone.Invoke(data[1]);
+                        break;
+                    case "SETAVAILABLE":
+                        List<DishAvailableModel> availables = JsonConvert.DeserializeObject<List<DishAvailableModel>>(data[1]);
+                        SetAvailable.Invoke(availables);
                         break;
                     default:
                         break;
