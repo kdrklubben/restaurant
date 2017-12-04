@@ -89,6 +89,9 @@ namespace KitchenLib
                         _logger.LogNewOrder($"{NewOrderCounter += 1} new orders");
                         KitchenDb.Orders.Add(JsonConvert.DeserializeObject<Order>(data));
                         break;
+                    case "GETDISHES":
+                        KitchenDb.Dishes.AddRange(JsonConvert.DeserializeObject<List<Dish>>(data));
+                        break;
                 }
             }
             else
@@ -97,7 +100,8 @@ namespace KitchenLib
                 {
                     case "AUTHCONFIRMED":
                         _logger.LogInformation(data);
-                        ClientSend("GETORDERS;{}");
+                        ClientSend("GETORDERS;");
+                        ClientSend("GETDISHES;");
                         break;
                     case "AUTHDENIED":
                         _logger.LogInformation(data);
@@ -112,6 +116,11 @@ namespace KitchenLib
         public void MarkOrderDone(int orderId)
         {
             ClientSend($"ORDERDONE;{orderId}");
+        }
+
+        public void SetDishAvailableStatus(int dishId, bool isDishAvailable)
+        {
+            ClientSend($"SETAVAILABLE;{JsonConvert.SerializeObject(new DishAvailableModel{DishId = dishId, IsAvailable = isDishAvailable})}");
         }
 
         public void DisconnectFromServer()
