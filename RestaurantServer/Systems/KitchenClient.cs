@@ -10,20 +10,29 @@ namespace RestaurantServer.Systems
 {
     internal class KitchenClient
     {
-        internal readonly Socket _socket;
+        internal readonly Socket Socket;
 
         public KitchenClient(Socket socket)
         {
-            _socket = socket;
+            Socket = socket;
             new Task(() => Listen()).Start();
         }
 
         private void Listen()
         {
-            while (true && _socket != null && _socket.Connected)
+            while (true && Socket != null && Socket.Connected)
             {
                 byte[] buffer = new byte[1024];
-                int byteCount = _socket.Receive(buffer);
+                int byteCount = 0;
+                try
+                {
+                    byteCount = Socket.Receive(buffer);
+                }
+                catch (Exception)
+                {
+                    ConsoleLogger.LogError($"Kitchen from { Socket.RemoteEndPoint } has forcibly closed the connection.");
+                    break;
+                }
                 if (byteCount == 0)
                     break;
 
@@ -38,12 +47,12 @@ namespace RestaurantServer.Systems
                     if (dishReadyPattern.IsMatch(response))
                     {
                         Match match = dishReadyPattern.Match(response);
-                        int orderId = JsonConvert.DeserializeObject<int>(match.Groups[1].Value);
+                        int orderId = JsonConvert.DeserializeObject<int>(match.Groups[2].Value);
                         ServerSystem.Instance.ConfirmOrder(orderId);
                     }
                     else if (getDishesPattern.IsMatch(response))
                     {
-                        ServerSystem.Instance.SendDishes(_socket);
+                        ServerSystem.Instance.SendDishes(Socket);
                     }
                     else if (getOrdersPattern.IsMatch(response))
                     {
@@ -51,12 +60,22 @@ namespace RestaurantServer.Systems
                     }
                     else if (response == "DISCONNECT" || Regex.IsMatch("DISCONNECT;.*", response))
                     {
+                        ConsoleLogger.LogInformation($"Kitchen from { Socket.RemoteEndPoint } has disconnected");
+                        SocketUtility.CloseConnection(Socket);
                         break;
                     }
+                    else
+                    {
+                        ConsoleLogger.LogError($"Invalid format received when listening to kitchen on { Socket.RemoteEndPoint }\n\t{ response }");
+                    }
+                }
+                else
+                {
+                    ConsoleLogger.LogError($"Invalid format received when listening to kitchen on { Socket.RemoteEndPoint }");
                 }
             }
 
-            SocketUtility.CloseConnection(_socket);
+            SocketUtility.CloseConnection(Socket);
         }
     }
 }

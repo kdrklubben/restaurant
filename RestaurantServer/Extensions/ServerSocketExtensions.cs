@@ -8,7 +8,7 @@ namespace RestaurantServer.Extensions
     {
         internal static void SendString(this Socket socket, string command, string message)
         {
-            socket.Send($"{ command };{ JsonConvert.SerializeObject(message) }".ToUtf8ByteArray());
+            socket.Send($"{ command };{ message }".ToUtf8ByteArray());
         }
     }
 }

@@ -1,12 +1,12 @@
 ﻿using Newtonsoft.Json;
 using RestaurantLib;
-using RestaurantLib.Extensions;
 using RestaurantServer.Extensions;
 using RestaurantServer.Models;
 using RestaurantServer.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -21,7 +21,7 @@ namespace RestaurantServer.Systems
         private readonly Socket _socket;
         internal readonly List<Dish> Dishes;
         internal readonly List<Customer> CustomerConnections;
-        internal Socket Kitchen { get; set; }
+        internal KitchenClient Kitchen { get; set; }
         private int OrderIdCounter { get; set; }
 
         static ServerSystem()
@@ -32,7 +32,7 @@ namespace RestaurantServer.Systems
             _socket = SocketUtility.CreateServerSocket();
             Dishes = SerializationUtility.ReadDishes();
             CustomerConnections = new List<Customer>();
-            OrderIdCounter = 1;
+            PrintSplash();
         }
 
         internal static ServerSystem Instance
@@ -40,17 +40,16 @@ namespace RestaurantServer.Systems
             get { return _instance; }
         }
 
-        internal void PlaceOrder(int dishId, Customer customer)
+        internal void PlaceOrder(Dish dish, Customer customer)
         {
-            Dish dish = Dishes.SingleOrDefault(x => x.DishId == dishId);
             if (dish != null)
             {
                 OrderIdCounter++;
                 Order order = new Order() { OrderId = OrderIdCounter, Dish = dish, IsDone = false };
                 customer.Orders.Add(order);
-                if (Kitchen != null && Kitchen.Connected)
+                if (Kitchen != null && Kitchen.Socket.Connected)
                 {
-                    customer.Socket.SendString("PLACEORDER", JsonConvert.SerializeObject(order));
+                    Kitchen.Socket.SendString("PLACEORDER", JsonConvert.SerializeObject(order));
                 }
             }
         }
@@ -65,8 +64,9 @@ namespace RestaurantServer.Systems
                 if (orderCustomer.Socket.Connected)
                 {
                     orderCustomer.Socket.SendString("ORDERDONE", JsonConvert.SerializeObject(orderId));
+                    orderCustomer.Orders.Remove(order);
                 }
-                orderCustomer.Orders.Remove(order);
+                ConsoleLogger.LogInformation($"{ orderCustomer.Username }'s order with ID { orderId } for { order.Dish.Name } has been marked as done.");
             }
         }
 
@@ -77,12 +77,12 @@ namespace RestaurantServer.Systems
 
         internal void SendUnfinishedOrdersToKitchen()
         {
-            if (Kitchen != null && Kitchen.Connected)
+            if (Kitchen != null && Kitchen.Socket.Connected)
             {
                 List<Order> orders = new List<Order>();
                 CustomerConnections.ForEach(x => orders.AddRange(x.Orders.Where(y => !y.IsDone)));
 
-                Kitchen.SendString("GETORDERS", JsonConvert.SerializeObject(orders));
+                Kitchen.Socket.SendString("GETORDERS", JsonConvert.SerializeObject(orders));
             }
         }
 
@@ -110,13 +110,22 @@ namespace RestaurantServer.Systems
                 socket.SendString("LOGIN", "Please enter your desired username");
 
                 byte[] buffer = new byte[1024];
-                int byteCount = socket.Receive(buffer);
+                int byteCount = 0;
+                try
+                {
+                    byteCount = socket.Receive(buffer);
+                }
+                catch (Exception)
+                {
+                    ConsoleLogger.LogError($"Connection with { socket.RemoteEndPoint } was forcibly closed.");
+                    break;
+                }
                 if (byteCount == 0)
                     break;
 
                 string response = Encoding.UTF8.GetString(buffer, 0, byteCount);
 
-                Regex loginPattern = new Regex("(LOGIN);p{L}+");
+                Regex loginPattern = new Regex(@"(LOGIN);(\p{L}+)");
                 if (response == "DISCONNECT" || Regex.IsMatch("DISCONNECT;.*", response))
                 {
                     ConsoleLogger.LogWarning($"User gave up while choosing username ({ socket.RemoteEndPoint })");
@@ -125,12 +134,12 @@ namespace RestaurantServer.Systems
                 }
                 else if (loginPattern.IsMatch(response))
                 {
-                    string username = loginPattern.Match(response).Groups[1].Value;
+                    string username = loginPattern.Match(response).Groups[2].Value;
                     if (username == "kitchen")
                     {
-                        if (Kitchen == null || !Kitchen.Connected)
+                        if (Kitchen == null || !Kitchen.Socket.Connected)
                         {
-                            Kitchen = socket;
+                            Kitchen = new KitchenClient(socket);
                             ConsoleLogger.LogInformation($"Kitchen logged on from { socket.RemoteEndPoint }.");
                             socket.SendString("AUTHCONFIRMED", "You are now authenticated as the kitchen");
                             break;
@@ -138,9 +147,10 @@ namespace RestaurantServer.Systems
                         else
                         {
                             socket.SendString("AUTHDENIED", "There is already a kitchen client connected");
-                            SocketUtility.CloseConnection(socket);
 
                             ConsoleLogger.LogWarning($"Refused kitchen login attempt from { socket.RemoteEndPoint }");
+                            SocketUtility.CloseConnection(socket);
+
                             break;
                         }
                     }
@@ -176,7 +186,7 @@ namespace RestaurantServer.Systems
                 }
                 else
                 {
-                    ConsoleLogger.LogError($"Invalid format from { socket.RemoteEndPoint } while waiting for authentication:\n{ response }");
+                    ConsoleLogger.LogError($"Invalid format from { socket.RemoteEndPoint } while waiting for authentication:\n\t{ response }");
                 }
             }
         }
@@ -185,7 +195,7 @@ namespace RestaurantServer.Systems
         {
             new Task(() => Listen()).Start();
             new Task(() => Timer()).Start();
-            Console.WriteLine("Server started using loopback address. Press ESC to shutdown and quit.");
+            ConsoleLogger.LogInformation($"Server started on { ((IPEndPoint)_socket.LocalEndPoint).Address }:{ ((IPEndPoint)_socket.LocalEndPoint).Port }. Press ESC to shutdown and quit.");
 
             while (true)
             {
@@ -200,18 +210,30 @@ namespace RestaurantServer.Systems
             Environment.Exit(0);
         }
 
-        internal void Timer()
+        private void Timer()
         {
-            new Timer(RemoveOldOrders, new AutoResetEvent(false), 60000, 60000);
+            new Timer(RemoveOldOrders, new AutoResetEvent(false), 300000, 300000);
         }
 
-        internal void RemoveOldOrders(Object stateinfo)
+        private void RemoveOldOrders(Object stateinfo)
         {
             foreach (var customer in CustomerConnections)
             {
-                customer.Orders.RemoveAll(x => x.OrderPlaced - DateTime.Now > TimeSpan.FromHours(1) && x.IsDone);               
+                customer.Orders.RemoveAll(x => x.IsDone && (x.OrderPlaced - DateTime.Now > TimeSpan.FromHours(1)));
             }
-            ConsoleLogger.LogInformation($"All done orders that were placed before {DateTime.Now.AddHours(-1)} were cleaned up.");
+            ConsoleLogger.LogInformation($"All unclaimed, finished orders that were placed before { DateTime.Now.AddHours(-1).ToUniversalTime() } have been removed.");
         }
-    }   
+
+        private void PrintSplash()
+        {
+            Console.WriteLine(@"   ___          __  ___       ___           __ ");
+            Console.WriteLine(@"  / _ \___ ___ / /_/ _ |__ __/ _ \___ ___  / /_");
+            Console.WriteLine(@" / , _/ -_|_-</ __/ __ / // / , _/ -_) _ \/ __/");
+            Console.WriteLine(@"/_/|_|\__/___/\__/_/ |_\_,_/_/|_|\__/_//_/\__/ ");
+            Console.WriteLine(@"  / __/__ _____  _____ ____  _  _<  // _ \     ");
+            Console.WriteLine(@" _\ \/ -_) __/ |/ / -_) __/ | |/ / // // /     ");
+            Console.WriteLine(@"/___/\__/_/  |___/\__/_/    |___/_(_)___/      ");
+            Console.WriteLine("\n\n");
+        }
+    }
 }
