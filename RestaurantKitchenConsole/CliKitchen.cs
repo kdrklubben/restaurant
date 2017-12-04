@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using KitchenLib;
 using Newtonsoft.Json;
@@ -36,6 +37,8 @@ namespace RestaurantKitchenConsole
                 case "2": ShowOrders();
                     break; 
                 case "3": MarkOrderDone();
+                    break;
+                case "4": ToggleOrderAvailability();
                     break;
                 case "menu": Menu();
                     break;
@@ -93,6 +96,46 @@ namespace RestaurantKitchenConsole
                 PrintConsoleMessage(ConsoleColor.Red, "Must be connected to server.", null);
         }
 
+        private static void ToggleOrderAvailability()
+        {
+            if (_connectionSucceeded)
+                try
+                {
+                    Console.Write("Choose which to toggle availability");
+                    var dishId = Console.ReadLine();
+                    var dish = KitchenDb.GetDishes().SingleOrDefault(o => o.DishId == int.Parse(dishId));
+                    if (dish != null)
+                    {
+                        if (dish.IsAvailable)
+                            PrintConsoleMessage(ConsoleColor.Green, $"{dish.Name} is currently set to available", null);
+                        else
+                            PrintConsoleMessage(ConsoleColor.Red, $"{dish.Name} is currently set to unavailable", null);
+
+                        while (true)
+                        {
+                            Console.WriteLine("1. To set dish available.");
+                            Console.Write("2. To set dish unavailable.");
+                            var setAvailabilityStatus = Console.ReadLine();
+                            if (setAvailabilityStatus == "x") break;
+                            if (setAvailabilityStatus == "1" || setAvailabilityStatus == "2")
+                            {
+                                //_client.();
+                            }
+                            else
+                                PrintConsoleMessage(ConsoleColor.Yellow, "Not a valid command try again or type x to quit.", null);
+                        }
+                    }
+                    else
+                        PrintConsoleMessage(ConsoleColor.White, "Dish-id does not exists.", null);
+                }
+                catch (Exception)
+                {
+                    PrintConsoleMessage(ConsoleColor.Yellow, "That is not a valid dish-id", null);
+                }
+            else
+                PrintConsoleMessage(ConsoleColor.Red, "Must be connected to server.", null);
+        }
+
         private static void Disconnect()
         {
             _client.DisconnectFromServer();
@@ -108,6 +151,7 @@ namespace RestaurantKitchenConsole
             {
                 Console.WriteLine("2. Show orders");
                 Console.WriteLine("3. Mark order done");
+                Console.WriteLine("4. Toggle dish availability");
                 Console.WriteLine("Type exit to disconnect from server.");
             }
             Console.WriteLine("Type menu to view again.");
