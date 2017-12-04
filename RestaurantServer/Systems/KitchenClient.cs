@@ -44,7 +44,7 @@ namespace RestaurantServer.Systems
                     Regex dishReadyPattern = new Regex(@"(ORDERDONE);(.*)");
                     Regex getDishesPattern = new Regex(@"(GETDISHES);(.*)");
                     Regex getOrdersPattern = new Regex(@"(GETORDERS);(.*)");
-                    Regex setAvailablePattern = new Regex(@"(SETAVAILABLE);(.+");
+                    Regex setAvailablePattern = new Regex(@"(SETAVAILABLE);(.+)");
 
                     if (dishReadyPattern.IsMatch(response))
                     {
