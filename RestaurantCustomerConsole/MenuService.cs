@@ -95,6 +95,7 @@ namespace RestaurantCustomerConsole
 
         void PlaceOrder(string item)
         {
+            Dish dish;
             if (!int.TryParse(item, out int itemId))
             {
                 itemId = Menu.Find(x => x.Name == item)?.DishId ?? 0;
@@ -110,6 +111,14 @@ namespace RestaurantCustomerConsole
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"ERROR: Provided id is too high. Consider looking up the menu and try again.\nIf you used a name, try it's Id number instead.");
+                Console.ResetColor();
+                return;
+            }
+
+            if (Menu.Find(x => x.Name == item).IsAvailable == false)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"ERROR: This dish is out of stock in the kitchen. Please select another dish");
                 Console.ResetColor();
                 return;
             }
