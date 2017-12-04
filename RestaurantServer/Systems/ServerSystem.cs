@@ -91,6 +91,11 @@ namespace RestaurantServer.Systems
             customer.Socket.SendString("GETORDERS", JsonConvert.SerializeObject(customer.Orders));
         }
 
+        internal void SetDishAvailable(int dishId, bool isAvailable)
+        {
+            throw new NotImplementedException();
+        }
+
         private void Listen()
         {
             while (true)

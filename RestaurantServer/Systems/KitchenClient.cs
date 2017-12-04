@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using RestaurantLib;
 using RestaurantServer.Utilities;
 using System;
 using System.Net.Sockets;
@@ -43,6 +44,7 @@ namespace RestaurantServer.Systems
                     Regex dishReadyPattern = new Regex(@"(ORDERDONE);(.*)");
                     Regex getDishesPattern = new Regex(@"(GETDISHES);(.*)");
                     Regex getOrdersPattern = new Regex(@"(GETORDERS);(.*)");
+                    Regex setAvailablePattern = new Regex(@"(SETAVAILABLE);(.+");
 
                     if (dishReadyPattern.IsMatch(response))
                     {
@@ -57,6 +59,12 @@ namespace RestaurantServer.Systems
                     else if (getOrdersPattern.IsMatch(response))
                     {
                         ServerSystem.Instance.SendUnfinishedOrdersToKitchen();
+                    }
+                    else if(setAvailablePattern.IsMatch(response))
+                    {
+                        Match match = setAvailablePattern.Match(response);
+                        DishToggleModel toggleModel = JsonConvert.DeserializeObject<DishToggleModel>(match.Groups[2].Value);
+                        ServerSystem.Instance.SetDishAvailable(toggleModel.DishId, toggleModel.IsAvailable);
                     }
                     else if (response == "DISCONNECT" || Regex.IsMatch("DISCONNECT;.*", response))
                     {
