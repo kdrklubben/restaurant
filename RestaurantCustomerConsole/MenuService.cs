@@ -69,7 +69,7 @@ namespace RestaurantCustomerConsole
             foreach (Dish item in Menu)
             {
                 price = item.IsAvailable ? item.Price.ToString()+" SEK" : "Out of Stock";
-                Console.ForegroundColor = item.IsAvailable ? ConsoleColor.White : ConsoleColor.Gray;
+                Console.ForegroundColor = item.IsAvailable ? ConsoleColor.Green : ConsoleColor.Red;
                 Console.WriteLine($"{item.DishId}\t{item.Name}\t{price}\n\t{item.Description}");
                 Console.ResetColor();
             }
@@ -115,7 +115,7 @@ namespace RestaurantCustomerConsole
                 return;
             }
 
-            if (Menu.Find(x => x.Name == item).IsAvailable == false)
+            if (Menu.Find(x => x.DishId == itemId).IsAvailable == false)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"ERROR: This dish is out of stock in the kitchen. Please select another dish");
