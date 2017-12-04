@@ -95,13 +95,23 @@ namespace RestaurantServer.Systems
         {
             Dish dish = Dishes.SingleOrDefault(x => x.DishId == dishId);
             if (dish != null)
+            {
                 dish.IsAvailable = isAvailable;
+                if (isAvailable)
+                    ConsoleLogger.LogInformation($"{ dish.Name } has been set to available");
+                else
+                    ConsoleLogger.LogInformation($"{ dish.Name } has been set to unavailable");
 
-            DishAvailableModel dishAvailable = new DishAvailableModel() { DishId = dishId, IsAvailable = isAvailable };
-            List<Socket> sockets = new List<Socket>();
-            CustomerConnections.ForEach(x => sockets.Add(x.Socket));
+                DishAvailableModel dishAvailable = new DishAvailableModel() { DishId = dishId, IsAvailable = isAvailable };
+                List<Socket> sockets = new List<Socket>();
+                CustomerConnections.ForEach(x => sockets.Add(x.Socket));
 
-            SocketUtility.SendStringToAll(sockets, "SETAVAILABLE", JsonConvert.SerializeObject(dishAvailable));
+                SocketUtility.SendStringToAll(sockets, "SETAVAILABLE", JsonConvert.SerializeObject(dishAvailable));
+            }
+            else
+            {
+                ConsoleLogger.LogError($"Invalid dish ID ({ dishId }) from kitchen when setting availability");
+            }
         }
 
         private void Listen()
