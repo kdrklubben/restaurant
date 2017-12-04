@@ -42,7 +42,7 @@ namespace RestaurantServer.Systems
 
         internal void PlaceOrder(Dish dish, Customer customer)
         {
-            if (dish != null)
+            if (dish != null && dish.IsAvailable)
             {
                 OrderIdCounter++;
                 Order order = new Order() { OrderId = OrderIdCounter, Dish = dish, IsDone = false };
@@ -50,7 +50,7 @@ namespace RestaurantServer.Systems
                 if (Kitchen != null && Kitchen.Socket.Connected)
                 {
                     Kitchen.Socket.SendString("PLACEORDER", JsonConvert.SerializeObject(order));
-                }
+                }                
             }
         }
 
