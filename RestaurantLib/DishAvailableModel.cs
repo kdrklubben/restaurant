@@ -4,7 +4,7 @@ using System.Text;
 
 namespace RestaurantLib
 {
-    public class DishToggleModel
+    public class DishAvailableModel
     {
         public int DishId { get; set; }
         public bool IsAvailable { get; set; }
