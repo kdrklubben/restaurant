@@ -72,7 +72,8 @@ namespace RestaurantServer.Systems
 
         internal void SendDishes(Socket socket)
         {
-            socket.SendString("GETDISHES", JsonConvert.SerializeObject(Dishes));
+            if (socket.Connected)
+                socket.SendString("GETDISHES", JsonConvert.SerializeObject(Dishes));
         }
 
         internal void SendUnfinishedOrdersToKitchen()
@@ -88,7 +89,8 @@ namespace RestaurantServer.Systems
 
         internal void SendCustomerOrders(Customer customer)
         {
-            customer.Socket.SendString("GETORDERS", JsonConvert.SerializeObject(customer.Orders));
+            if (customer.Socket.Connected)
+                customer.Socket.SendString("GETORDERS", JsonConvert.SerializeObject(customer.Orders));
         }
 
         internal void SetDishAvailable(int dishId, bool isAvailable)
