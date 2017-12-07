@@ -28,7 +28,7 @@ namespace RestaurantCustomerLib
         {
             while (listen)
             {
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[5120];
                 int recieve = networkstream.Read(buffer, 0, buffer.Length);
                 string message = Encoding.UTF8.GetString(buffer, 0, recieve);
 

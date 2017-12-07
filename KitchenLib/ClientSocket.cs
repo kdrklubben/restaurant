@@ -54,7 +54,7 @@ namespace KitchenLib
         {
             while (true)
             {
-                var data = new byte[1024];
+                var data = new byte[5120];
                 var recv = 0;
 
                 try
