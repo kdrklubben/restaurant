@@ -1,35 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using RestaurantLib;
+using RestaurantCustomerConsole.Extensions;
 
 namespace RestaurantCustomerConsole.EventHandlers
 {
     internal static class Handlers
     {
         public static void HandleServerUnavailable(){
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("ERROR: The server is unavailable. Restarting connection process.");
-            Console.ResetColor();
+            ConsoleExtentions.Error("ERROR: The server is unavailable. Restarting connection process.");
             MenuService.Client.Connect();
         }
 
         internal static void HandleLoginResponse(string message)
         {
-            Console.WriteLine(message);
+            ConsoleExtentions.Info(message);
             MenuService.ClaimName();
         }
         internal static void HandleAuthConfirmed(string message)
         {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine(message);
-            Console.ResetColor();
+            ConsoleExtentions.Success(message);
             MenuService.Client.GetDishes();
+            MenuService.Run = true;
         }
         internal static void HandleAuthDenied(string message)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("ERROR: " + message);
-            Console.ResetColor();
+            ConsoleExtentions.Error("ERROR: " + message);
             MenuService.ClaimName();
         }
 
@@ -54,6 +50,7 @@ namespace RestaurantCustomerConsole.EventHandlers
         internal static string HandlePromptIpAdress()
         {
             Console.WriteLine("Provide IP adress (defaults to 127.0.0.1)");
+            Console.Write("> ");
             return Console.ReadLine();
         }
 

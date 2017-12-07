@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using RestaurantCustomerLib.Delegates;
 using RestaurantCustomerConsole.EventHandlers;
+using RestaurantCustomerConsole.Extensions;
 
 namespace RestaurantCustomerConsole
 {
@@ -12,6 +13,7 @@ namespace RestaurantCustomerConsole
         public static SocketClient Client { get; private set; }
         internal static List<Dish> Menu { get; set; } = new List<Dish>();
         internal static List<Order> Orders { get; set; } = new List<Order>();
+        public static bool Run = false;
         public MenuService()
         {
             Client = new SocketClient();
@@ -38,18 +40,24 @@ namespace RestaurantCustomerConsole
             string command = "";
             while (true)
             {
-                Console.Write("> ");
-                command = Console.ReadLine().ToLower();
-                if (command == "menu") DisplayMenu();
-                if (command == "exit") {
-                    Client.Disconnect();
-                    break;
-                }
-                if (command == "kitchen") DisplayOrders();
-                if (command == "help") DisplayHelp();
-                if (command.StartsWith("order")) {
-                    string item = command.Substring(command.IndexOf(' '));
-                    PlaceOrder(item);
+                if (Run)
+                {
+                    Console.Write("> ");
+                    command = Console.ReadLine().ToLower();
+                    if (command == "menu") DisplayMenu();
+                    if (command == "exit")
+                    {
+                        Client.Disconnect();
+                        break;
+                    }
+                    if (command == "kitchen") DisplayOrders();
+                    if (command == "clear") Console.Clear();
+                    if (command == "help") DisplayHelp();
+                    if (command.StartsWith("order"))
+                    {
+                        string item = command.Substring(command.IndexOf(' '));
+                        PlaceOrder(item);
+                    }
                 }
             }
         }
@@ -59,6 +67,7 @@ namespace RestaurantCustomerConsole
             Console.WriteLine("Type 'menu' to view all menu options");
             Console.WriteLine("Type 'kitchen' to view all orders in the kitchen");
             Console.WriteLine("Type 'order [x]' to place an order. 'x' can be the dish's number or name");
+            Console.WriteLine("Type 'clear' to clear the console");
             Console.WriteLine("Type 'exit' to close the application");
             Console.WriteLine("Type 'help' to see this list again");
         }
@@ -87,6 +96,7 @@ namespace RestaurantCustomerConsole
             bool IsValid = true;
             do
             {
+                Console.Write("> ");
                 name = Console.ReadLine();
                 if (name == "kitchen") IsValid = false;
             } while (!IsValid);
@@ -95,31 +105,29 @@ namespace RestaurantCustomerConsole
 
         void PlaceOrder(string item)
         {
-            Dish dish;
             if (!int.TryParse(item, out int itemId))
             {
                 itemId = Menu.Find(x => x.Name == item)?.DishId ?? 0;
             }
+            if (itemId < 0)
+            {
+                ConsoleExtentions.Error("ERROR: User inputted a negative number. This is common among testers. Consider changing the user and try again.");
+                return;
+            }
             if (itemId == 0)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"ERROR: Found no dish id or name matching '{item}'. Consider looking up the menu and try again.\nIf you used a name, try it's Id number instead.");
-                Console.ResetColor();
+                ConsoleExtentions.Error($"ERROR: Found no dish id or name matching '{item}'. Consider looking up the menu and try again.\nIf you used a name, try it's Id number instead.");
                 return;
             }
             else if (itemId > Menu.Count)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"ERROR: Provided id is too high. Consider looking up the menu and try again.\nIf you used a name, try it's Id number instead.");
-                Console.ResetColor();
+                ConsoleExtentions.Error($"ERROR: Provided id is too high. Consider looking up the menu and try again.\nIf you used a name, try it's Id number instead.");
                 return;
             }
 
             if (Menu.Find(x => x.DishId == itemId).IsAvailable == false)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"ERROR: This dish is out of stock in the kitchen. Please select another dish");
-                Console.ResetColor();
+                ConsoleExtentions.Error($"ERROR: This dish is out of stock in the kitchen. Please select another dish");
                 return;
             }
 
